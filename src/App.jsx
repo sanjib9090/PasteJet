@@ -9,7 +9,7 @@ import PasteView from './pages/PasteView';
 import Dashboard from './pages/Dashboard';
 import Clipboard from './pages/Clipboard';
 import CodeLab from './pages/CodeLab';
-import Login from './components/login';
+import Login from './components/Login';
 
 function App() {
   const [user, setUser] = useState(null);
