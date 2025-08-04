@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -5,12 +6,12 @@ import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Label } from "../components/ui/label";
-import {
-  Users,
-  Plus,
-  Code2,
-  Copy,
-  Check,
+import { 
+  Users, 
+  Plus, 
+  Code2, 
+  Copy, 
+  Check, 
   ExternalLink,
   Coffee,
   Zap,
@@ -31,7 +32,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { db } from "../firebase";
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
 import axios from "axios";
-import styles from './CodeLab.module.css';
 
 const languages = [
   { value: "javascript", label: "JavaScript", color: "text-yellow-300", executionId: 63 },
@@ -65,7 +65,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomLanguage, setNewRoomLanguage] = useState("javascript");
   const [joinRoomId, setJoinRoomId] = useState("");
-  const [roomPasswords, setRoomPasswords] = useState({});
+  const [roomPassword, setRoomPassword] = useState("");
   const [code, setCode] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -168,28 +168,22 @@ export default function CodeLab({ theme = 'dark', user }) {
         const roomsRef = collection(db, "rooms");
         const roomsSnapshot = await getDocs(query(roomsRef, where("is_active", "==", true)));
         const userRooms = [];
-        const seenRoomIds = new Set();
         const memberQueries = [];
 
         for (const roomDoc of roomsSnapshot.docs) {
           const roomData = { id: roomDoc.id, ...roomDoc.data() };
-          if (roomData.created_by === user.email && !seenRoomIds.has(roomData.room_id)) {
+          if (roomData.created_by === user.email) {
             userRooms.push(roomData);
-            seenRoomIds.add(roomData.room_id);
           } else {
-            memberQueries.push({ roomId: roomDoc.id, query: getDoc(doc(db, "rooms", roomDoc.id, "members", user.email)) });
+            memberQueries.push(getDoc(doc(db, "rooms", roomDoc.id, "members", user.email)));
           }
         }
 
-        const memberDocs = await Promise.all(memberQueries.map(q => q.query));
+        const memberDocs = await Promise.all(memberQueries);
         memberDocs.forEach((memberDoc, index) => {
           if (memberDoc.exists()) {
-            const roomId = memberQueries[index].roomId;
-            const roomData = roomsSnapshot.docs.find(doc => doc.id === roomId).data();
-            if (!seenRoomIds.has(roomData.room_id)) {
-              userRooms.push({ id: roomId, ...roomData });
-              seenRoomIds.add(roomData.room_id);
-            }
+            const roomData = roomsSnapshot.docs[index].data();
+            userRooms.push({ id: memberDoc.ref.parent.parent.id, ...roomData });
           }
         });
 
@@ -223,7 +217,7 @@ export default function CodeLab({ theme = 'dark', user }) {
         created_date: new Date().toISOString(),
         created_by: user.email,
         isPrivate: roomSettings.isPrivate,
-        password: roomSettings.isPrivate ? roomPasswords[roomId] || "" : null
+        password: roomSettings.isPrivate ? roomPassword : null
       };
 
       await setDoc(doc(db, "rooms", roomId), roomData);
@@ -237,7 +231,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       setCode(roomData.content);
       setShowCreateForm(false);
       setNewRoomName("");
-      setRoomPasswords(prev => ({ ...prev, [roomId]: "" }));
+      setRoomPassword("");
       setRooms(prev => [roomData, ...prev]);
     } catch (error) {
       console.error("Error creating room:", error);
@@ -253,13 +247,13 @@ export default function CodeLab({ theme = 'dark', user }) {
       return;
     }
 
-    if (room.isPrivate === true && !roomPasswords[room.room_id]) {
+    if (room.isPrivate && !roomPassword) {
       alert("Please enter the room password.");
       return;
     }
-    if (room.isPrivate === true && room.password !== roomPasswords[room.room_id]) {
+    if (room.isPrivate && room.password !== roomPassword) {
       alert("Incorrect password.");
-      setRoomPasswords(prev => ({ ...prev, [room.room_id]: "" }));
+      setRoomPassword("");
       return;
     }
 
@@ -273,7 +267,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       setCode(room.content || `// Welcome to ${room.room_name}!\n// Collaborative coding session\n\n`);
       setShowJoinForm(false);
       setJoinRoomId("");
-      setRoomPasswords(prev => ({ ...prev, [room.room_id]: "" }));
+      setRoomPassword("");
     } catch (error) {
       console.error("Error joining room:", error);
       alert("Failed to join room. Please try again.");
@@ -291,9 +285,9 @@ export default function CodeLab({ theme = 'dark', user }) {
       const roomDoc = await getDoc(doc(db, "rooms", joinRoomId.toUpperCase()));
       if (roomDoc.exists()) {
         const roomData = { id: roomDoc.id, ...roomDoc.data() };
-        if (roomData.isPrivate === true && roomData.password !== roomPasswords[joinRoomId.toUpperCase()]) {
+        if (roomData.isPrivate && roomData.password !== roomPassword) {
           alert("Incorrect password.");
-          setRoomPasswords(prev => ({ ...prev, [joinRoomId.toUpperCase()]: "" }));
+          setRoomPassword("");
           return;
         }
         await handleJoinRoom(roomData);
@@ -449,31 +443,24 @@ export default function CodeLab({ theme = 'dark', user }) {
     try {
       await updateDoc(doc(db, "rooms", currentRoom.room_id), {
         isPrivate: roomSettings.isPrivate,
-        password: roomSettings.isPrivate ? roomPasswords[currentRoom.room_id] || "" : null
+        password: roomSettings.isPrivate ? roomPassword : null
       });
-      setCurrentRoom(prev => ({ ...prev, ...roomSettings, password: roomSettings.isPrivate ? roomPasswords[currentRoom.room_id] || "" : null }));
+      setCurrentRoom(prev => ({ ...prev, ...roomSettings, password: roomSettings.isPrivate ? roomPassword : null }));
       setShowRoomSettings(false);
-      setRoomPasswords(prev => ({ ...prev, [currentRoom.room_id]: "" }));
+      setRoomPassword("");
     } catch (error) {
       console.error("Error updating room settings:", error);
       alert("Failed to update room settings. Please try again.");
     }
   };
 
-  const deleteRoom = async (roomId) => {
-    if (!user) return;
+  const deleteRoom = async () => {
+    if (!currentRoom || currentRoom.created_by !== user.email) return;
 
     try {
-      await updateDoc(doc(db, "rooms", roomId), { is_active: false });
-      if (currentRoom && currentRoom.room_id === roomId) {
-        setCurrentRoom(null);
-        setCode("");
-        setChatMessages([]);
-        setMembers([]);
-        setCursors({});
-        setExecutionOutput("");
-        setVersionHistory([]);
-      }
+      await updateDoc(doc(db, "rooms", currentRoom.room_id), { is_active: false });
+      setCurrentRoom(null);
+      setCode("");
       loadRooms();
     } catch (error) {
       console.error("Error deleting room:", error);
@@ -569,7 +556,7 @@ export default function CodeLab({ theme = 'dark', user }) {
           languageSliderBg: 'bg-gray-900/50 border-gray-600',
           languageItemBg: 'text-white hover:bg-gray-700',
           primaryButton: 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600',
-          secondaryButton: 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-blue-600',
+          secondaryButton: 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600',
           outlineButton: 'border-gray-600 text-gray-300 hover:bg-gray-700',
           textareaBg: 'bg-gray-900 text-white border-gray-600 focus:ring-purple-400/20',
           spinnerColor: 'border-purple-500'
@@ -593,16 +580,14 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   const renderCursor = (cursor, index) => {
-    if (!textareaRef.current || !cursor.position || !code) return null;
+    if (!textareaRef.current || !cursor.position) return null;
     const lines = code.split('\n');
-    if (cursor.position.line < 1 || cursor.position.line > lines.length) return null;
-
     let charCount = 0;
     for (let i = 0; i < cursor.position.line - 1; i++) {
-      charCount += (lines[i]?.length || 0) + 1;
+      charCount += lines[i].length + 1;
     }
     charCount += cursor.position.column - 1;
-
+    
     const lineHeight = 20;
     const charWidth = 8;
     const top = (cursor.position.line - 1) * lineHeight;
@@ -611,8 +596,8 @@ export default function CodeLab({ theme = 'dark', user }) {
     return (
       <div
         key={cursor.email}
-        className={`absolute pointer-events-none ${cursorColors[index % cursorColors.length]}`}
-        style={{ top: `${top + 8}px`, left: `${left + 48}px` }}
+        className={`absolute pointer-events-none`}
+        style={{ top: `${top}px`, left: `${left + 48}px` }}
       >
         <div className="w-0.5 h-5 bg-current" />
         <div className={`text-xs px-1.5 py-0.5 rounded ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
@@ -824,7 +809,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                     <div className="relative flex">
                       <div
                         ref={lineNumbersRef}
-                        className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-2 font-mono text-sm leading-5 pb-1 ${
+                        className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                         }`}
                         style={{ lineHeight: '20px', overflowY: 'hidden' }}
@@ -1029,8 +1014,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                           <Label className={themeClasses.subtitleColor}>Room Password</Label>
                           <Input
                             type="password"
-                            value={roomPasswords[currentRoom.room_id] || ""}
-                            onChange={(e) => setRoomPasswords(prev => ({ ...prev, [currentRoom.room_id]: e.target.value }))}
+                            value={roomPassword}
+                            onChange={(e) => setRoomPassword(e.target.value)}
                             placeholder="Enter room password"
                             className={`text-sm ${themeClasses.inputBg}`}
                           />
@@ -1052,7 +1037,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                       </div>
                     </div>
                     <Button
-                      onClick={() => deleteRoom(currentRoom.room_id)}
+                      onClick={deleteRoom}
                       className={`w-full px-4 py-2 text-sm border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500`}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
@@ -1188,7 +1173,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                       <Input
                         value={newRoomName}
                         onChange={(e) => setNewRoomName(e.target.value)}
-                        placeholder="My Awesome Project (Required)"
+                        placeholder="My Awesome Project"
                         className={`text-sm ${themeClasses.inputBg}`}
                         required
                       />
@@ -1206,7 +1191,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                         </Button>
                         <div
                           ref={languageSliderRef}
-                          className={`flex overflow-x-auto space-x-2 p-2 border rounded-md ${themeClasses.languageSliderBg} ${styles.scrollbarHide}`}
+                          className={`flex overflow-x-auto space-x-2 p-2 border rounded-md ${themeClasses.languageSliderBg} scrollbar-hide`}
                           style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
                         >
                           {languages.map((lang) => (
@@ -1252,8 +1237,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                         <Label className={themeClasses.subtitleColor}>Room Password</Label>
                         <Input
                           type="password"
-                          value={roomPasswords['newRoom'] || ""}
-                          onChange={(e) => setRoomPasswords(prev => ({ ...prev, newRoom: e.target.value }))}
+                          value={roomPassword}
+                          onChange={(e) => setRoomPassword(e.target.value)}
                           placeholder="Enter room password"
                           className={`text-sm ${themeClasses.inputBg}`}
                           required
@@ -1331,8 +1316,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                       <Label className={themeClasses.subtitleColor}>Password (if private)</Label>
                       <Input
                         type="password"
-                        value={roomPasswords[joinRoomId.toUpperCase()] || ""}
-                        onChange={(e) => setRoomPasswords(prev => ({ ...prev, [joinRoomId.toUpperCase()]: e.target.value }))}
+                        value={roomPassword}
+                        onChange={(e) => setRoomPassword(e.target.value)}
                         placeholder="Enter room password"
                         className={`text-sm ${themeClasses.inputBg}`}
                       />
@@ -1466,8 +1451,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                         <div className="mb-4">
                           <Input
                             type="password"
-                            value={roomPasswords[room.room_id] || ""}
-                            onChange={(e) => setRoomPasswords(prev => ({ ...prev, [room.room_id]: e.target.value }))}
+                            value={roomPassword}
+                            onChange={(e) => setRoomPassword(e.target.value)}
                             placeholder="Enter room password"
                             className={`text-sm ${themeClasses.inputBg}`}
                           />
@@ -1476,7 +1461,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleJoinRoom(room)}
-                          disabled={room.isPrivate === true && !roomPasswords[room.room_id]}
+                          disabled={room.isPrivate && !roomPassword}
                           className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
                         >
                           <ExternalLink className="w-4 h-4 mr-2" />
@@ -1494,16 +1479,6 @@ export default function CodeLab({ theme = 'dark', user }) {
                             <Share className="w-4 h-4" />
                           )}
                         </Button>
-                        {room.created_by === user.email && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteRoom(room.room_id)}
-                            className="px-3 py-1 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
                       </div>
                     </motion.div>
                   ))}
@@ -1513,6 +1488,16 @@ export default function CodeLab({ theme = 'dark', user }) {
           </Card>
         </motion.div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
