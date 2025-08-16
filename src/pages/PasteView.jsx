@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -22,7 +21,6 @@ import { motion } from "framer-motion";
 import CodeBlock from "../components/CodeBlock";
 import { db } from "../firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import bcrypt from "bcryptjs";
 
 export default function PasteView({ theme = 'dark' }) {
   const { id } = useParams();
@@ -67,7 +65,9 @@ export default function PasteView({ theme = 'dark' }) {
         pasteData = { id: pasteSnap.id, ...pasteSnap.data() };
       }
 
-      console.log("Paste metadata:", pasteData);
+      // Filter out sensitive data before logging
+      const { password: _, content: __, ...safePasteData } = pasteData;
+      console.log("Paste metadata:", safePasteData);
 
       // Check expiration
       if (pasteData.expires_at && pasteData.expires_at.toDate() < new Date()) {
@@ -76,8 +76,8 @@ export default function PasteView({ theme = 'dark' }) {
         return;
       }
 
-      // Check password protection (new or old structure)
-      if ((pasteData.hasPassword || pasteData.password) && !password) {
+      // Check password protection
+      if (pasteData.password && !password) {
         console.log("Password required, showing prompt");
         setShowPasswordPrompt(true);
         setPaste(pasteData);
@@ -86,32 +86,14 @@ export default function PasteView({ theme = 'dark' }) {
       }
 
       // Handle content retrieval
-      if (pasteData.hasPassword && password) {
-        // New structure: query private subcollection
-        const passwordHash = await bcrypt.hash(password, 10);
-        console.log("Generated password hash:", passwordHash);
-        const privateRef = collection(db, "pastes", pasteData.id, "private");
-        const q = query(privateRef, where("passwordHash", "==", passwordHash));
-        const privateSnap = await getDocs(q);
-        console.log("Private data found:", privateSnap.size);
-
-        if (privateSnap.empty) {
-          console.log("Password incorrect or no private data");
-          setError("Incorrect password.");
-          setLoading(false);
-          return;
-        }
-
-        const privateData = privateSnap.docs[0].data();
-        setContent(privateData.content);
-      } else if (pasteData.password && password) {
-        // Old structure: client-side password check
+      if (pasteData.password) {
         if (password !== pasteData.password) {
-          console.log("Password incorrect:", password);
+          console.log("Password verification failed");
           setError("Incorrect password.");
           setLoading(false);
           return;
         }
+        console.log("Password verified, accessing content");
         setContent(pasteData.content);
       } else {
         // No password required
@@ -138,7 +120,7 @@ export default function PasteView({ theme = 'dark' }) {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    console.log("Password submitted:", password);
+    console.log("Password submitted (not logging actual password)");
     await loadPaste();
   };
 
@@ -192,17 +174,17 @@ export default function PasteView({ theme = 'dark' }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${
-          theme === 'dark' ? 'border-purple-400' : theme === 'green' ? 'border-emerald-500' : 'border-orange-500'
-        }`}></div>
+      <div className="min-h-screen flex items-center justify-center ">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-white"
+        ></div>
       </div>
     );
   }
 
   if (error || !paste) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 ">
         <Card className={`backdrop-blur-md ${themeClasses.cardBg}`}>
           <CardContent className="text-center p-8">
             <div className={`w-16 h-16 mx-auto mb-4 ${
@@ -226,7 +208,7 @@ export default function PasteView({ theme = 'dark' }) {
 
   if (showPasswordPrompt) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 ">
         <Card className={`backdrop-blur-md ${themeClasses.cardBg}`}>
           <CardContent className="p-6">
             <CardTitle className={`mb-4 ${themeClasses.cardTitle}`}>
@@ -262,7 +244,7 @@ export default function PasteView({ theme = 'dark' }) {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8 ">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
