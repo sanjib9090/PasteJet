@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -34,13 +33,13 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnaps
 import axios from "axios";
 
 const languages = [
-  { value: "javascript", label: "JavaScript", color: "text-yellow-300", executionId: 63 },
-  { value: "python", label: "Python", color: "text-blue-300", executionId: 71 },
-  { value: "java", label: "Java", color: "text-orange-300", executionId: 62 },
-  { value: "cpp", label: "C++", color: "text-purple-300", executionId: 54 },
-  { value: "html", label: "HTML", color: "text-red-300", executionId: null },
-  { value: "css", label: "CSS", color: "text-green-300", executionId: null },
-  { value: "typescript", label: "TypeScript", color: "text-blue-400", executionId: 74 }
+  { value: "javascript", label: "JavaScript", color: "text-yellow-300", version: "18.15.0" },
+  { value: "python", label: "Python", color: "text-blue-300", version: "3.10.0" },
+  { value: "java", label: "Java", color: "text-orange-300", version: "15.0.2" },
+  { value: "cpp", label: "C++", color: "text-purple-300", version: "10.2.0" },
+  { value: "html", label: "HTML", color: "text-red-300", version: null },
+  { value: "css", label: "CSS", color: "text-green-300", version: null },
+  { value: "typescript", label: "TypeScript", color: "text-blue-400", version: "5.0.3" }
 ];
 
 const cursorColors = [
@@ -333,37 +332,32 @@ export default function CodeLab({ theme = 'dark', user }) {
   const executeCode = async () => {
     if (!currentRoom || isExecuting) return;
     const language = languages.find(l => l.value === currentRoom.language);
-    if (!language.executionId) {
+    if (!language.version) {
       setExecutionOutput("Execution not supported for this language.");
       return;
     }
 
     setIsExecuting(true);
     try {
-      const response = await axios.post("https://api.judge0.com/submissions", {
-        source_code: code,
-        language_id: language.executionId,
-        stdin: ""
+      const response = await axios.post("https://pastejetbackend.onrender.com/execute", {
+        language: currentRoom.language,
+        version: language.version,
+        code,
+        input: ""
       }, {
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        timeout: 15000 // 15-second timeout
       });
 
-      const token = response.data.token;
-      let result;
-      do {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        result = await axios.get(`https://api.judge0.com/submissions/${token}`);
-      } while (result.data.status.id <= 2);
-
-      setExecutionOutput(result.data.stdout || result.data.stderr || "No output");
+      setExecutionOutput(response.data.stdout || response.data.stderr || "No output");
       await setDoc(doc(collection(db, "rooms", currentRoom.room_id, "execution_results")), {
-        output: result.data.stdout || result.data.stderr || "No output",
+        output: response.data.stdout || response.data.stderr || "No output",
         executed_by: user.email,
         timestamp: Date.now()
       });
     } catch (error) {
       console.error("Error executing code:", error);
-      setExecutionOutput("Error executing code. Please try again.");
+      setExecutionOutput("Error executing code: " + (error.response?.data?.details || error.message));
     } finally {
       setIsExecuting(false);
     }
@@ -596,7 +590,7 @@ export default function CodeLab({ theme = 'dark', user }) {
     return (
       <div
         key={cursor.email}
-        className={`absolute pointer-events-none`}
+        className={`absolute pointer-events-none ${cursorColors[index % cursorColors.length]}`}
         style={{ top: `${top}px`, left: `${left + 48}px` }}
       >
         <div className="w-0.5 h-5 bg-current" />
@@ -762,8 +756,7 @@ export default function CodeLab({ theme = 'dark', user }) {
             </Card>
           </motion.div>
 
-          <div className="">     {/*grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6*/}
-           
+          <div className="">
             <div className={`lg:col-span-${showChat ? 3 : 4}`}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -780,7 +773,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
                           onClick={executeCode}
-                          disabled={isExecuting || !languages.find(l => l.value === currentRoom.language)?.executionId}
+                          disabled={isExecuting || !languages.find(l => l.value === currentRoom.language)?.version}
                           className={`px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
                         >
                           {isExecuting ? (
@@ -1039,7 +1032,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                     </div>
                     <Button
                       onClick={deleteRoom}
-                      className={`w-full px-4 py-2 text-sm border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500`}
+                      className={`w-full px-4 py-2 text-sm border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-red-500`}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete Room
