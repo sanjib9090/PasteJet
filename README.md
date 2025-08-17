@@ -152,8 +152,8 @@ pastejetfrontend/
 
 - **Firestore Rules**:
   ```javascript
-  rules_version = '2';
-service cloud.firestore {
+  rules_version = '2'; 
+  service cloud.firestore {
   match /databases/{database}/documents {
     match /pastes/{pasteId} {
       // Allow anyone to read pastes
@@ -176,7 +176,7 @@ service cloud.firestore {
     
     
     
- match /rooms/{roomId} {
+  match /rooms/{roomId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.resource.data.created_by == request.auth.token.email;
       allow update: if request.auth != null;
@@ -217,7 +217,7 @@ service cloud.firestore {
       }
     }    
   }
-}
+  }
   ```
 - **for clipboard**: Enable indexing clipboards	
 created_by
