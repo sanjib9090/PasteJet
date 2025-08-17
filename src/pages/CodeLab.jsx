@@ -664,7 +664,7 @@ export default function CodeLab({ theme = 'dark', user }) {
             className="mb-6"
           >
             <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-              <CardContent className="p-4 sm:p-6">
+              <CardContent className="p-4 sm:p-6 pt-5">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h1 className={`text-xl sm:text-2xl font-bold mb-2 flex items-center space-x-2 ${themeClasses.cardTitle}`}>
@@ -849,7 +849,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                         style={{ lineHeight: '20px', paddingLeft: '12px' }}
                       />
                       {Object.values(cursors).map((cursor, index) => renderCursor(cursor, index))}
-                      <div className={`absolute top-2 right-2 text-xs px-2 py-1 rounded ${
+                      <div className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${
                         theme === 'dark' ? 'bg-gray-800/80 text-gray-400' : 'bg-white/80 text-gray-600'
                       }`}>
                         💡 Changes sync automatically
