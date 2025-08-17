@@ -605,7 +605,7 @@ export default function CodeLab({ theme = 'dark', user }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
         <Card className={`w-full max-w-md backdrop-blur-md ${themeClasses.cardBg}`}>
-          <CardContent className="text-center p-6 sm:p-8">
+          <CardContent className="text-center p-6 sm:p-8 pt-4">
             <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
               theme === 'dark' ? 'bg-purple-500/20' : theme === 'green' ? 'bg-emerald-500/20' : 'bg-orange-500/20'
             }`}>

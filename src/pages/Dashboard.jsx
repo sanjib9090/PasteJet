@@ -201,7 +201,7 @@ export default function Dashboard({ theme = 'dark', user }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className={`backdrop-blur-md ${themeClasses.cardBg}`}>
-          <CardContent className="text-center p-8">
+          <CardContent className="text-center p-8 pt-7">
             <h2 className={`text-xl font-semibold mb-4 ${themeClasses.cardTitle}`}>Login Required</h2>
             <p className={`mb-6 ${themeClasses.mutedText}`}>You need to be logged in to view your dashboard</p>
             <Button
