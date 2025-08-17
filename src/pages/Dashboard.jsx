@@ -288,7 +288,7 @@ export default function Dashboard({ theme = 'dark', user }) {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <p className={`text-sm font-medium ${themeClasses.text}`}>Name: {userDetails.displayName}</p>
+                    <p className={`text-sm font-medium pt-3 ${themeClasses.text}`}>Name: {userDetails.displayName}</p>
                     <p className={`text-sm ${themeClasses.mutedText}`}>Email: {userDetails.email}</p>
                   </div>
                   <Button

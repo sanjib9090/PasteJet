@@ -320,7 +320,7 @@ export default function PasteView({ theme = 'dark' }) {
           transition={{ delay: 0.1 }}
         >
           <Card className={`backdrop-blur-md ${themeClasses.cardBg}`}>
-            <CardContent className="p-6">
+            <CardContent className="p-6 pt-3">
               <CodeBlock content={content} language={paste.language} theme={theme} />
             </CardContent>
           </Card>
