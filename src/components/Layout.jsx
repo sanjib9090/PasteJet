@@ -103,7 +103,6 @@ export default function Layout({ children, user }) {
           titleGradient: 'bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent',
           text: 'text-white',
           mutedText: 'text-gray-400',
-          backgroundColor: '#1a1a1a', // Match dark theme
           activeButton: 'bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/25',
           hoverButton: 'text-gray-300 hover:text-white hover:bg-gray-800/50',
           userBadge: 'bg-purple-500/20 text-purple-300',
