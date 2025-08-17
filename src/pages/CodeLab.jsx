@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { db } from "../firebase";
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const languages = [
   { value: "javascript", label: "JavaScript", color: "text-yellow-300", version: "18.15.0" },
@@ -81,6 +82,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const textareaRef = useRef(null);
   const lineNumbersRef = useRef(null);
   const languageSliderRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -618,7 +620,7 @@ export default function CodeLab({ theme = 'dark', user }) {
               You need to be logged in to join CodeLab rooms
             </p>
             <Button
-              onClick={() => window.location.reload()}
+             onClick={() => navigate('/login')}
               className={`w-full sm:w-auto px-6 py-2 text-base ${themeClasses.primaryButton} text-white shadow-lg`}
             >
               Login to Continue

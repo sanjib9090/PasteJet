@@ -205,10 +205,10 @@ export default function Dashboard({ theme = 'dark', user }) {
             <h2 className={`text-xl font-semibold mb-4 ${themeClasses.cardTitle}`}>Login Required</h2>
             <p className={`mb-6 ${themeClasses.mutedText}`}>You need to be logged in to view your dashboard</p>
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/login')}
               className={`${themeClasses.primaryButton} text-white`}
             >
-              Go to Home
+             Login
             </Button>
           </CardContent>
         </Card>
