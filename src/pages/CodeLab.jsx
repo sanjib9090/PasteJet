@@ -40,8 +40,30 @@ const languages = [
   { value: "cpp", label: "C++", color: "text-purple-300", version: "10.2.0" },
   { value: "html", label: "HTML", color: "text-red-300", version: null },
   { value: "css", label: "CSS", color: "text-green-300", version: null },
-  { value: "typescript", label: "TypeScript", color: "text-blue-400", version: "5.0.3" }
+  { value: "typescript", label: "TypeScript", color: "text-blue-400", version: "5.0.3" },
+  
+  // Added popular languages supported by Piston API (with common default versions)
+  { value: "csharp", label: "C#", color: "text-blue-400", version: "5.0.201" }, // .NET-based
+  { value: "go", label: "Go", color: "text-cyan-300", version: "1.16.2" },
+  { value: "ruby", label: "Ruby", color: "text-red-400", version: "3.0.1" },
+  { value: "php", label: "PHP", color: "text-indigo-300", version: "8.0.3" },
+  { value: "swift", label: "Swift", color: "text-orange-400", version: "5.3.3" },
+  { value: "kotlin", label: "Kotlin", color: "text-purple-400", version: "1.8.20" },
+  { value: "rust", label: "Rust", color: "text-orange-500", version: "1.68.2" },
+  { value: "sql", label: "SQL (SQLite)", color: "text-blue-500", version: "3.45.1" }, // Via sqlite3 runtime
+  { value: "bash", label: "Bash", color: "text-gray-300", version: "5.2.0" },
+  { value: "perl", label: "Perl", color: "text-pink-300", version: "5.36.0" },
+  { value: "lua", label: "Lua", color: "text-blue-600", version: "5.4.4" },
+  { value: "haskell", label: "Haskell", color: "text-purple-500", version: "9.0.1" },
+  { value: "scala", label: "Scala", color: "text-red-500", version: "3.1.0" },
+  { value: "elixir", label: "Elixir", color: "text-indigo-400", version: "1.13.3" },
+  { value: "dart", label: "Dart", color: "text-teal-300", version: "2.16.2" },
+  { value: "r", label: "R", color: "text-blue-200", version: "4.1.3" }, // Via rscript
+  { value: "clojure", label: "Clojure", color: "text-green-500", version: "1.10.3" },
+  { value: "fortran", label: "Fortran", color: "text-gray-400", version: "11.1.0" },
+  { value: "lisp", label: "Lisp", color: "text-yellow-400", version: "2.1.2" }
 ];
+
 
 const cursorColors = [
   "bg-red-500",
