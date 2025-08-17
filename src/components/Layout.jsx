@@ -17,7 +17,11 @@ import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 
 export default function Layout({ children, user }) {
-  const [theme, setTheme] = useState('dark'); // 'dark', 'orange', 'green'
+  // Initialize theme from localStorage, default to 'dark' if not set
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme && ['dark', 'orange', 'green'].includes(savedTheme) ? savedTheme : 'dark';
+  });
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -45,7 +49,9 @@ export default function Layout({ children, user }) {
     const themes = ['dark', 'orange', 'green'];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+    const newTheme = themes[nextIndex];
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme); // Save to localStorage
   };
 
   const navItems = [

@@ -15,6 +15,46 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get theme from localStorage, default to 'dark'
+  const theme = localStorage.getItem('theme') && ['dark', 'orange', 'green'].includes(localStorage.getItem('theme'))
+    ? localStorage.getItem('theme')
+    : 'dark';
+
+  // Define theme styles matching Layout.jsx
+  const getThemeClasses = () => {
+    switch (theme) {
+      case 'green':
+        return {
+          background: 'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100',
+          spinnerBorder: 'border-emerald-200/50',
+          spinnerTop: 'border-t-emerald-600',
+          text: 'text-gray-600',
+          errorBg: 'bg-emerald-50',
+          errorText: 'text-red-600'
+        };
+      case 'orange':
+        return {
+          background: 'bg-gradient-to-br from-rose-50 via-orange-50 to-pink-100',
+          spinnerBorder: 'border-orange-200/50',
+          spinnerTop: 'border-t-orange-600',
+          text: 'text-gray-600',
+          errorBg: 'bg-orange-50',
+          errorText: 'text-red-600'
+        };
+      default: // dark
+        return {
+          background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900',
+          spinnerBorder: 'border-gray-700/50',
+          spinnerTop: 'border-t-purple-400',
+          text: 'text-white',
+          errorBg: 'bg-gray-900',
+          errorText: 'text-red-400'
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses();
+
   useEffect(() => {
     console.log('Auth check started:', new Date().toISOString());
     const timeout = setTimeout(() => {
@@ -46,36 +86,17 @@ function App() {
   if (loading) {
     return (
       <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: '#1a1a1a', // Dark theme background
-          margin: 0
-        }}
+        className={`flex justify-center items-center h-screen m-0 ${themeClasses.background}`}
       >
         <div
-          style={{
-            border: '4px solid #ffffff33', // Light gray for contrast
-            borderTop: '4px solid #ffffff', // White spinner for visibility
-            borderRadius: '50%',
-            width: '50px',
-            height: '50px',
-            animation: 'spin 1s linear infinite'
-          }}
+          className={`border-4 ${themeClasses.spinnerBorder} ${themeClasses.spinnerTop} rounded-full w-12 h-12 animate-spin`}
         ></div>
         <style>
           {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
             html, body {
               margin: 0;
               padding: 0;
               height: 100%;
-              background-color: #1a1a1a; /* Ensure body matches dark theme */
             }
           `}
         </style>
@@ -86,13 +107,7 @@ function App() {
   if (error) {
     return (
       <div
-        style={{
-          textAlign: 'center',
-          padding: '20px',
-          backgroundColor: '#1a1a1a', // Match dark theme
-          color: '#ffffff', // White text for readability
-          minHeight: '100vh'
-        }}
+        className={`text-center p-5 ${themeClasses.errorBg} ${themeClasses.text} min-h-screen`}
       >
         Error: {error}
       </div>
