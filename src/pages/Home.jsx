@@ -159,6 +159,7 @@ export default function Home({ theme = 'dark', user }) {
         expires_at: ""
       });
       setFile(null);
+       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error("Error creating paste:", error);
       setError("Failed to create paste. Please try again.");

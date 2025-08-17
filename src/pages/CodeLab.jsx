@@ -5,12 +5,12 @@ import { Textarea } from "../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Label } from "../components/ui/label";
-import { 
-  Users, 
-  Plus, 
-  Code2, 
-  Copy, 
-  Check, 
+import {
+  Users,
+  Plus,
+  Code2,
+  Copy,
+  Check,
   ExternalLink,
   Coffee,
   Zap,
@@ -41,7 +41,7 @@ const languages = [
   { value: "html", label: "HTML", color: "text-red-300", version: null },
   { value: "css", label: "CSS", color: "text-green-300", version: null },
   { value: "typescript", label: "TypeScript", color: "text-blue-400", version: "5.0.3" },
-  
+
   // Added popular languages supported by Piston API (with common default versions)
   { value: "csharp", label: "C#", color: "text-blue-400", version: "5.0.201" }, // .NET-based
   { value: "go", label: "Go", color: "text-cyan-300", version: "1.16.2" },
@@ -605,7 +605,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       charCount += lines[i].length + 1;
     }
     charCount += cursor.position.column - 1;
-    
+
     const lineHeight = 20;
     const charWidth = 8;
     const top = (cursor.position.line - 1) * lineHeight;
@@ -630,9 +630,8 @@ export default function CodeLab({ theme = 'dark', user }) {
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
         <Card className={`w-full max-w-md backdrop-blur-md ${themeClasses.cardBg}`}>
           <CardContent className="text-center p-6 sm:p-8 pt-4">
-            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-              theme === 'dark' ? 'bg-purple-500/20' : theme === 'green' ? 'bg-emerald-500/20' : 'bg-orange-500/20'
-            }`}>
+            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/20' : theme === 'green' ? 'bg-emerald-500/20' : 'bg-orange-500/20'
+              }`}>
               <Users className={`w-8 h-8 ${themeClasses.heroIconColor}`} />
             </div>
             <h2 className={`text-lg sm:text-xl font-semibold mb-2 ${themeClasses.cardTitle}`}>
@@ -642,7 +641,7 @@ export default function CodeLab({ theme = 'dark', user }) {
               You need to be logged in to join CodeLab rooms
             </p>
             <Button
-             onClick={() => navigate('/login')}
+              onClick={() => navigate('/login')}
               className={`w-full sm:w-auto px-6 py-2 text-base ${themeClasses.primaryButton} text-white shadow-lg`}
             >
               Login to Continue
@@ -670,12 +669,10 @@ export default function CodeLab({ theme = 'dark', user }) {
                     <h1 className={`text-xl sm:text-2xl font-bold mb-2 flex items-center space-x-2 ${themeClasses.cardTitle}`}>
                       <Users className={`w-5 sm:w-6 h-5 sm:h-6 ${themeClasses.cardIcon}`} />
                       <span>{currentRoom.room_name}</span>
-                      <div className={`flex items-center space-x-1 text-xs sm:text-sm px-2 py-1 rounded-full ${
-                        theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse ${
-                          theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                        }`}></div>
+                      <div className={`flex items-center space-x-1 text-xs sm:text-sm px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
+                          }`}></div>
                         <span>Live</span>
                       </div>
                     </h1>
@@ -692,7 +689,7 @@ export default function CodeLab({ theme = 'dark', user }) {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
-                      variant="outline" 
+                      variant="outline"
                       size="sm"
                       onClick={() => copyRoomUrl(currentRoom.room_id)}
                       className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
@@ -812,12 +809,10 @@ export default function CodeLab({ theme = 'dark', user }) {
                             </>
                           )}
                         </Button>
-                        <div className={`flex items-center space-x-2 text-xs sm:text-sm px-3 py-1 rounded-full ${
-                          theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          <div className={`w-2 h-2 rounded-full animate-pulse ${
-                            theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                          }`}></div>
+                        <div className={`flex items-center space-x-2 text-xs sm:text-sm px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                          <div className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
+                            }`}></div>
                           <span>Auto-sync enabled</span>
                         </div>
                       </div>
@@ -827,9 +822,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                     <div className="relative flex">
                       <div
                         ref={lineNumbersRef}
-                        className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                        }`}
+                        className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                          }`}
                         style={{ lineHeight: '20px', overflowY: 'hidden' }}
                       >
                         <pre className="select-none">{lineNumbers}</pre>
@@ -849,9 +843,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                         style={{ lineHeight: '20px', paddingLeft: '12px' }}
                       />
                       {Object.values(cursors).map((cursor, index) => renderCursor(cursor, index))}
-                      <div className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${
-                        theme === 'dark' ? 'bg-gray-800/80 text-gray-400' : 'bg-white/80 text-gray-600'
-                      }`}>
+                      <div className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-800/80 text-gray-400' : 'bg-white/80 text-gray-600'
+                        }`}>
                         💡 Changes sync automatically
                       </div>
                     </div>
@@ -873,10 +866,16 @@ export default function CodeLab({ theme = 'dark', user }) {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <pre className={`p-4 rounded-lg text-sm ${theme === 'dark' ? 'bg-gray-900/50 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                      <pre
+                        className={`p-4 rounded-lg text-sm overflow-auto max-h-64 ${theme === 'dark'
+                          ? 'bg-gray-900/50 text-white'
+                          : 'bg-gray-100 text-gray-900'
+                          }`}
+                      >
                         {executionOutput}
                       </pre>
                     </CardContent>
+
                   </Card>
                 </motion.div>
               )}
@@ -901,11 +900,10 @@ export default function CodeLab({ theme = 'dark', user }) {
                       <div className="h-[300px] sm:h-[400px] overflow-y-auto mb-4 p-4 rounded-lg bg-gray-900/30">
                         {chatMessages.map((msg) => (
                           <div key={msg.id} className={`mb-3 ${msg.sender === user.email ? 'text-right' : 'text-left'}`}>
-                            <div className={`inline-block p-2 rounded-lg text-sm ${
-                              msg.sender === user.email 
+                            <div className={`inline-block p-2 rounded-lg text-sm ${msg.sender === user.email
                                 ? (theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-emerald-500/20 text-emerald-700')
                                 : (theme === 'dark' ? 'bg-gray-700/50 text-gray-300' : 'bg-gray-100 text-gray-700')
-                            }`}>
+                              }`}>
                               <p className="text-xs font-medium">{msg.displayName}</p>
                               <p>{msg.content}</p>
                               <p className="text-xs opacity-70">{new Date(msg.timestamp).toLocaleTimeString()}</p>
@@ -1143,21 +1141,19 @@ export default function CodeLab({ theme = 'dark', user }) {
           className="text-center mb-8 sm:mb-12"
         >
           <div className="inline-flex items-center gap-3 mb-6">
-            <div className={`p-3 rounded-2xl ${
-              theme === 'dark' 
-                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30' 
+            <div className={`p-3 rounded-2xl ${theme === 'dark'
+                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30'
                 : theme === 'green'
-                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30'
-                : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30'
-            }`}>
+                  ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30'
+                  : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30'
+              }`}>
               <Users className={`w-6 sm:w-8 h-6 sm:h-8 ${themeClasses.heroIconColor}`} />
             </div>
             <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold ${themeClasses.titleGradient}`}>
               CodeLab
             </h1>
-            <Sparkles className={`w-5 sm:w-6 h-5 sm:h-6 ${
-              theme === 'dark' ? 'text-blue-400' : theme === 'green' ? 'text-teal-500' : 'text-pink-500'
-            } animate-pulse`} />
+            <Sparkles className={`w-5 sm:w-6 h-5 sm:h-6 ${theme === 'dark' ? 'text-blue-400' : theme === 'green' ? 'text-teal-500' : 'text-pink-500'
+              } animate-pulse`} />
           </div>
           <p className={`text-base sm:text-lg md:text-xl mb-4 ${themeClasses.subtitleColor}`}>
             Real-time collaborative coding spaces for teams
@@ -1184,123 +1180,146 @@ export default function CodeLab({ theme = 'dark', user }) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                {showCreateForm ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Room Name</Label>
-                      <Input
-                        value={newRoomName}
-                        onChange={(e) => setNewRoomName(e.target.value)}
-                        placeholder="My Awesome Project"
-                        className={`text-sm ${themeClasses.inputBg}`}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Language</Label>
-                      <div className="relative flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => scrollLanguageSlider('left')}
-                          className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </Button>
-                        <div
-                          ref={languageSliderRef}
-                          className={`flex overflow-x-auto space-x-2 p-2 border rounded-md ${themeClasses.languageSliderBg} scrollbar-hide`}
-                          style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                        >
-                          {languages.map((lang) => (
-                            <div
-                              key={lang.value}
-                              onClick={() => setNewRoomLanguage(lang.value)}
-                              className={`flex-shrink-0 px-4 py-2 rounded-md cursor-pointer text-sm transition-all duration-200 ${themeClasses.languageItemBg} ${
-                                newRoomLanguage === lang.value
-                                  ? theme === 'dark'
-                                    ? 'bg-purple-500/20 border-purple-500'
-                                    : theme === 'green'
-                                    ? 'bg-emerald-500/20 border-emerald-500'
-                                    : 'bg-orange-500/20 border-orange-500'
-                                  : ''
-                              }`}
-                              style={{ scrollSnapAlign: 'center', minWidth: '100px' }}
-                            >
-                              <span className={getLanguageColor(lang.value)}>{lang.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => scrollLanguageSlider('right')}
-                          className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={roomSettings.isPrivate}
-                        onChange={(e) => setRoomSettings({ ...roomSettings, isPrivate: e.target.checked })}
-                        className="h-4 w-4"
-                      />
-                      <Label className={themeClasses.subtitleColor}>Private Room</Label>
-                    </div>
-                    {roomSettings.isPrivate && (
-                      <div className="space-y-2">
-                        <Label className={themeClasses.subtitleColor}>Room Password</Label>
-                        <Input
-                          type="password"
-                          value={roomPassword}
-                          onChange={(e) => setRoomPassword(e.target.value)}
-                          placeholder="Enter room password"
-                          className={`text-sm ${themeClasses.inputBg}`}
-                          required
-                        />
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => setShowCreateForm(false)}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleCreateRoom}
-                        disabled={isSubmitting}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                      >
-                        {isSubmitting ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Creating...</span>
-                          </div>
-                        ) : (
-                          "Create Room"
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className={`text-sm ${themeClasses.subtitleColor}`}>
-                      Start a new collaborative coding session with your team
-                    </p>
-                    <Button
-                      onClick={() => setShowCreateForm(true)}
-                      className={`w-full px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create New Room
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
+  {showCreateForm ? (
+    <div className="space-y-4">
+      {/* Room Name */}
+      <div className="space-y-2">
+        <Label className={themeClasses.subtitleColor}>Room Name</Label>
+        <Input
+          value={newRoomName}
+          onChange={(e) => setNewRoomName(e.target.value)}
+          placeholder="My Awesome Project"
+          className={`text-sm ${themeClasses.inputBg}`}
+          required
+        />
+        {!newRoomName.trim() && (
+          <p className="text-xs text-gray-500">Required field</p>
+        )}
+      </div>
+
+      {/* Language */}
+      <div className="space-y-2">
+        <Label className={themeClasses.subtitleColor}>Language</Label>
+        <div className="relative flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => scrollLanguageSlider("left")}
+            className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div
+            ref={languageSliderRef}
+            className={`flex overflow-x-auto space-x-2 p-2 border rounded-md ${themeClasses.languageSliderBg} scrollbar-hide`}
+            style={{
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {languages.map((lang) => (
+              <div
+                key={lang.value}
+                onClick={() => setNewRoomLanguage(lang.value)}
+                className={`flex-shrink-0 px-4 py-2 rounded-md cursor-pointer text-sm transition-all duration-200 ${themeClasses.languageItemBg} ${
+                  newRoomLanguage === lang.value
+                    ? theme === "dark"
+                      ? "bg-purple-500/20 border-purple-500"
+                      : theme === "green"
+                      ? "bg-emerald-500/20 border-emerald-500"
+                      : "bg-orange-500/20 border-orange-500"
+                    : ""
+                }`}
+                style={{ scrollSnapAlign: "center", minWidth: "100px" }}
+              >
+                <span className={getLanguageColor(lang.value)}>
+                  {lang.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => scrollLanguageSlider("right")}
+            className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Private Room Checkbox */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={roomSettings.isPrivate}
+          onChange={(e) =>
+            setRoomSettings({ ...roomSettings, isPrivate: e.target.checked })
+          }
+          className="h-4 w-4"
+        />
+        <Label className={themeClasses.subtitleColor}>Private Room</Label>
+      </div>
+
+      {/* Password if Private */}
+      {roomSettings.isPrivate && (
+        <div className="space-y-2">
+          <Label className={themeClasses.subtitleColor}>Room Password</Label>
+          <Input
+            type="password"
+            value={roomPassword}
+            onChange={(e) => setRoomPassword(e.target.value)}
+            placeholder="Enter room password"
+            className={`text-sm ${themeClasses.inputBg}`}
+            required
+          />
+          {!roomPassword.trim() && (
+            <p className="text-xs text-gray-500">Required field</p>
+          )}
+        </div>
+      )}
+
+      {/* Buttons */}
+      <div className="flex gap-3">
+        <Button
+          onClick={() => setShowCreateForm(false)}
+          className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleCreateRoom}
+          disabled={isSubmitting}
+          className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
+        >
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Creating...</span>
+            </div>
+          ) : (
+            "Create Room"
+          )}
+        </Button>
+      </div>
+    </div>
+  ) : (
+    <div className="space-y-4">
+      <p className={`text-sm ${themeClasses.subtitleColor}`}>
+        Start a new collaborative coding session with your team
+      </p>
+      <Button
+        onClick={() => setShowCreateForm(true)}
+        className={`w-full px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Create New Room
+      </Button>
+    </div>
+  )}
+</CardContent>
+
             </Card>
           </motion.div>
 
@@ -1419,13 +1438,12 @@ export default function CodeLab({ theme = 'dark', user }) {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       whileHover={{ scale: 1.02 }}
-                      className={`border-2 rounded-xl p-4 sm:p-6 transition-all duration-300 ${
-                        theme === 'dark' 
-                          ? 'border-gray-700 hover:border-purple-500/50 bg-gray-900/30 hover:shadow-lg hover:shadow-purple-500/20' 
+                      className={`border-2 rounded-xl p-4 sm:p-6 transition-all duration-300 ${theme === 'dark'
+                          ? 'border-gray-700 hover:border-purple-500/50 bg-gray-900/30 hover:shadow-lg hover:shadow-purple-500/20'
                           : theme === 'green'
-                          ? 'border-emerald-200 hover:border-emerald-400/50 bg-gradient-to-br from-white/50 to-emerald-50/30 hover:shadow-lg hover:shadow-emerald-500/20'
-                          : 'border-orange-200 hover:border-orange-400/50 bg-gradient-to-br from-white/50 to-orange-50/30 hover:shadow-lg hover:shadow-orange-500/20'
-                      }`}
+                            ? 'border-emerald-200 hover:border-emerald-400/50 bg-gradient-to-br from-white/50 to-emerald-50/30 hover:shadow-lg hover:shadow-emerald-500/20'
+                            : 'border-orange-200 hover:border-orange-400/50 bg-gradient-to-br from-white/50 to-orange-50/30 hover:shadow-lg hover:shadow-orange-500/20'
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -1433,18 +1451,16 @@ export default function CodeLab({ theme = 'dark', user }) {
                             {room.room_name}
                           </h3>
                           <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs border-2 ${getLanguageColor(room.language)}`}
                             >
                               {languages.find(l => l.value === room.language)?.label || room.language}
                             </Badge>
-                            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                              theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                            }`}>
-                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                                theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                              }`}></div>
+                            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
+                              }`}>
+                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
+                                }`}></div>
                               <span>Live</span>
                             </div>
                             {room.isPrivate && (
@@ -1458,9 +1474,8 @@ export default function CodeLab({ theme = 'dark', user }) {
                       </div>
                       <div className={`text-xs sm:text-sm mb-4 space-y-1 ${themeClasses.subtitleColor}`}>
                         <p>
-                          Room ID: <span className={`font-mono font-bold ${
-                            theme === 'dark' ? 'text-purple-300' : theme === 'green' ? 'text-emerald-700' : 'text-orange-700'
-                          }`}>{room.room_id}</span>
+                          Room ID: <span className={`font-mono font-bold ${theme === 'dark' ? 'text-purple-300' : theme === 'green' ? 'text-emerald-700' : 'text-orange-700'
+                            }`}>{room.room_id}</span>
                         </p>
                         <p>Created {new Date(room.created_date).toLocaleString()}</p>
                         <p>By {room.created_by}</p>

@@ -360,7 +360,7 @@ export default function ClipboardPage({ theme = 'dark', user }) {
               className="mb-8"
             >
               <Card className={`border-2 backdrop-blur-sm ${theme === 'dark' ? 'bg-red-900/20 border-red-700/50' : 'bg-red-50/80 border-red-200'}`}>
-                <CardContent className="p-6">
+                <CardContent className="p-6 pt-5">
                   <p className={themeClasses.errorText}>{error}</p>
                 </CardContent>
               </Card>
