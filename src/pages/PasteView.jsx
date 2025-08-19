@@ -210,7 +210,7 @@ export default function PasteView({ theme = 'dark' }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 ">
         <Card className={`backdrop-blur-md ${themeClasses.cardBg}`}>
-          <CardContent className="p-6">
+          <CardContent className="p-6 pt-6">
             <CardTitle className={`mb-4 ${themeClasses.cardTitle}`}>
               <div className="flex items-center space-x-2">
                 <Lock className="w-5 h-5" />
