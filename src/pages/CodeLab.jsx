@@ -1,37 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Label } from "../components/ui/label";
-import {
-  Users,
-  Plus,
-  Code2,
-  Copy,
-  Check,
-  ExternalLink,
-  Coffee,
-  Zap,
-  Share,
-  ArrowRight,
-  Sparkles,
-  Settings,
-  MessageSquare,
-  UserPlus,
-  UserMinus,
-  Trash2,
-  Play,
-  History,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
+import { Users, Plus, Code2, Copy, Check, ExternalLink, Coffee, Zap, Share, ArrowRight, Sparkles, Settings, MessageSquare, UserPlus, UserMinus, Trash2, Play, History, ChevronLeft, ChevronRight, Mic, MicOff } from "lucide-react";
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import Header from "./lab/Header";
+import CodeEditor from "./lab/CodeEditor";
+import Chat from "./lab/Chat";
+import ManageMembersModal from "./lab/ManageMembersModal";
+import RoomSettingsModal from "./lab/RoomSettingsModal";
+import VersionHistoryModal from "./lab/VersionhistoryModal";
+import CreateRoomForm from "./lab/CreateRoomForm";
+import JoinRoomForm from "./lab/JoinRoomForm";
+import ActiveRooms from "./lab/ActiveRooms";
+import AuthPrompt from "./lab/AuthPrompt";
+import AudioChat from "./lab/AudioChat"; // Import AudioChat component
 
 const languages = [
   { value: "javascript", label: "JavaScript", color: "text-yellow-300", version: "18.15.0" },
@@ -41,16 +25,14 @@ const languages = [
   { value: "html", label: "HTML", color: "text-red-300", version: null },
   { value: "css", label: "CSS", color: "text-green-300", version: null },
   { value: "typescript", label: "TypeScript", color: "text-blue-400", version: "5.0.3" },
-
-  // Added popular languages supported by Piston API (with common default versions)
-  { value: "csharp", label: "C#", color: "text-blue-400", version: "5.0.201" }, // .NET-based
+  { value: "csharp", label: "C#", color: "text-blue-400", version: "5.0.201" },
   { value: "go", label: "Go", color: "text-cyan-300", version: "1.16.2" },
   { value: "ruby", label: "Ruby", color: "text-red-400", version: "3.0.1" },
   { value: "php", label: "PHP", color: "text-indigo-300", version: "8.0.3" },
   { value: "swift", label: "Swift", color: "text-orange-400", version: "5.3.3" },
   { value: "kotlin", label: "Kotlin", color: "text-purple-400", version: "1.8.20" },
   { value: "rust", label: "Rust", color: "text-orange-500", version: "1.68.2" },
-  { value: "sql", label: "SQL (SQLite)", color: "text-blue-500", version: "3.45.1" }, // Via sqlite3 runtime
+  { value: "sql", label: "SQL (SQLite)", color: "text-blue-500", version: "3.45.1" },
   { value: "bash", label: "Bash", color: "text-gray-300", version: "5.2.0" },
   { value: "perl", label: "Perl", color: "text-pink-300", version: "5.36.0" },
   { value: "lua", label: "Lua", color: "text-blue-600", version: "5.4.4" },
@@ -58,12 +40,11 @@ const languages = [
   { value: "scala", label: "Scala", color: "text-red-500", version: "3.1.0" },
   { value: "elixir", label: "Elixir", color: "text-indigo-400", version: "1.13.3" },
   { value: "dart", label: "Dart", color: "text-teal-300", version: "2.16.2" },
-  { value: "r", label: "R", color: "text-blue-200", version: "4.1.3" }, // Via rscript
+  { value: "r", label: "R", color: "text-blue-200", version: "4.1.3" },
   { value: "clojure", label: "Clojure", color: "text-green-500", version: "1.10.3" },
   { value: "fortran", label: "Fortran", color: "text-gray-400", version: "11.1.0" },
   { value: "lisp", label: "Lisp", color: "text-yellow-400", version: "2.1.2" }
 ];
-
 
 const cursorColors = [
   "bg-red-500",
@@ -370,7 +351,7 @@ export default function CodeLab({ theme = 'dark', user }) {
         input: ""
       }, {
         headers: { "Content-Type": "application/json" },
-        timeout: 15000 // 15-second timeout
+        timeout: 15000
       });
 
       setExecutionOutput(response.data.stdout || response.data.stderr || "No output");
@@ -626,902 +607,195 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
-        <Card className={`w-full max-w-md backdrop-blur-md ${themeClasses.cardBg}`}>
-          <CardContent className="text-center p-6 sm:p-8 pt-4">
-            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/20' : theme === 'green' ? 'bg-emerald-500/20' : 'bg-orange-500/20'
-              }`}>
-              <Users className={`w-8 h-8 ${themeClasses.heroIconColor}`} />
-            </div>
-            <h2 className={`text-lg sm:text-xl font-semibold mb-2 ${themeClasses.cardTitle}`}>
-              Login Required
-            </h2>
-            <p className={`mb-6 text-sm sm:text-base ${themeClasses.subtitleColor}`}>
-              You need to be logged in to join CodeLab rooms
-            </p>
-            <Button
-              onClick={() => navigate('/login')}
-              className={`w-full sm:w-auto px-6 py-2 text-base ${themeClasses.primaryButton} text-white shadow-lg`}
-            >
-              Login to Continue
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (currentRoom) {
-    const lineNumbers = code.split('\n').map((_, i) => i + 1).join('\n');
-    return (
-      <div className="min-h-screen p-4 sm:p-6 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-              <CardContent className="p-4 sm:p-6 pt-5">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div>
-                    <h1 className={`text-xl sm:text-2xl font-bold mb-2 flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                      <Users className={`w-5 sm:w-6 h-5 sm:h-6 ${themeClasses.cardIcon}`} />
-                      <span>{currentRoom.room_name}</span>
-                      <div className={`flex items-center space-x-1 text-xs sm:text-sm px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                        }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                          }`}></div>
-                        <span>Live</span>
-                      </div>
-                    </h1>
-                    <div className={`flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm ${themeClasses.subtitleColor}`}>
-                      <Badge variant="outline" className={`border-2 ${getLanguageColor(currentRoom.language)}`}>
-                        {languages.find(l => l.value === currentRoom.language)?.label || currentRoom.language}
-                      </Badge>
-                      <span>Room ID: <span className="font-mono font-bold">{currentRoom.room_id}</span></span>
-                      <span>Created {new Date(currentRoom.created_date).toLocaleString()}</span>
-                      {currentRoom.isPrivate && (
-                        <Badge variant="outline" className="border-2 text-yellow-400">Private</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyRoomUrl(currentRoom.room_id)}
-                      className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                    >
-                      {copied[`url_${currentRoom.room_id}`] ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" />
-                          URL Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Share className="w-4 h-4 mr-2" />
-                          Share Room
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyRoomId(currentRoom.room_id)}
-                      className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                    >
-                      {copied[currentRoom.room_id] ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy ID
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowChat(!showChat)}
-                      className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      {showChat ? "Hide Chat" : "Show Chat"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowVersionHistory(true)}
-                      className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                    >
-                      <History className="w-4 h-4 mr-2" />
-                      Version History
-                    </Button>
-                    {currentRoom.created_by === user.email && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowManageMembers(true)}
-                          className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                        >
-                          <Users className="w-4 h-4 mr-2" />
-                          Manage Members
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowRoomSettings(true)}
-                          className={`px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                        >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Room Settings
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={leaveRoom}
-                      className={`px-4 py-2 text-sm border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500`}
-                    >
-                      Leave Room
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <div className="">
-            <div className={`lg:col-span-${showChat ? 3 : 4}`}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-                  <CardHeader>
-                    <CardTitle className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${themeClasses.cardTitle}`}>
-                      <div className="flex items-center space-x-2">
-                        <Code2 className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                        <span>Collaborative Code Editor</span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button
-                          onClick={executeCode}
-                          disabled={isExecuting || !languages.find(l => l.value === currentRoom.language)?.version}
-                          className={`px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                        >
-                          {isExecuting ? (
-                            <div className="flex items-center space-x-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Running...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Run Code
-                            </>
-                          )}
-                        </Button>
-                        <div className={`flex items-center space-x-2 text-xs sm:text-sm px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                          }`}>
-                          <div className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                            }`}></div>
-                          <span>Auto-sync enabled</span>
-                        </div>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="relative flex">
-                      <div
-                        ref={lineNumbersRef}
-                        className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                          }`}
-                        style={{ lineHeight: '20px', overflowY: 'hidden' }}
-                      >
-                        <pre className="select-none">{lineNumbers}</pre>
-                      </div>
-                      <Textarea
-                        ref={textareaRef}
-                        value={code}
-                        onChange={(e) => {
-                          handleCodeChange(e);
-                          handleCursorChange(e);
-                          syncScroll();
-                        }}
-                        onScroll={syncScroll}
-                        onSelect={handleCursorChange}
-                        className={`min-h-[500px] border-0 rounded-none font-mono text-sm leading-5 resize-none transition-all duration-200 flex-1 ${themeClasses.textareaBg} ${getLanguageColor(currentRoom.language)}`}
-                        placeholder="Start coding together..."
-                        style={{ lineHeight: '20px', paddingLeft: '12px' }}
-                      />
-                      {Object.values(cursors).map((cursor, index) => renderCursor(cursor, index))}
-                      <div className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-800/80 text-gray-400' : 'bg-white/80 text-gray-600'
-                        }`}>
-                        💡 Changes sync automatically
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              {executionOutput && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="mt-4 sm:mt-6"
-                >
-                  <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-                    <CardHeader>
-                      <CardTitle className={`flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                        <Play className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                        <span>Execution Output</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <pre
-                        className={`p-4 rounded-lg text-sm overflow-auto max-h-64 ${theme === 'dark'
-                          ? 'bg-gray-900/50 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                          }`}
-                      >
-                        {executionOutput}
-                      </pre>
-                    </CardContent>
-
-                  </Card>
-                </motion.div>
-              )}
-            </div>
-
-            <AnimatePresence>
-              {showChat && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="lg:col-span-1"
-                >
-                  <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-                    <CardHeader>
-                      <CardTitle className={`flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                        <MessageSquare className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                        <span>Chat</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 sm:p-6">
-                      <div className="h-[300px] sm:h-[400px] overflow-y-auto mb-4 p-4 rounded-lg bg-gray-900/30">
-                        {chatMessages.map((msg) => (
-                          <div key={msg.id} className={`mb-3 ${msg.sender === user.email ? 'text-right' : 'text-left'}`}>
-                            <div className={`inline-block p-2 rounded-lg text-sm ${msg.sender === user.email
-                                ? (theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-emerald-500/20 text-emerald-700')
-                                : (theme === 'dark' ? 'bg-gray-700/50 text-gray-300' : 'bg-gray-100 text-gray-700')
-                              }`}>
-                              <p className="text-xs font-medium">{msg.displayName}</p>
-                              <p>{msg.content}</p>
-                              <p className="text-xs opacity-70">{new Date(msg.timestamp).toLocaleTimeString()}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        <Input
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="Type a message..."
-                          className={`text-sm ${themeClasses.inputBg}`}
-                        />
-                        <Button
-                          onClick={sendMessage}
-                          className={`w-full px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                        >
-                          Send
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <AnimatePresence>
-            {showManageMembers && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 sm:p-6 z-50"
-              >
-                <Card className={`w-full max-w-md backdrop-blur-md ${themeClasses.cardBg}`}>
-                  <CardHeader>
-                    <CardTitle className={`flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                      <Users className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                      <span>Manage Members</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Add Member</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={newMemberEmail}
-                          onChange={(e) => setNewMemberEmail(e.target.value)}
-                          placeholder="Enter email"
-                          type="email"
-                          className={`text-sm ${themeClasses.inputBg}`}
-                        />
-                        <Button
-                          onClick={addMember}
-                          className={`px-4 py-2 ${themeClasses.primaryButton} text-white`}
-                        >
-                          <UserPlus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Current Members</Label>
-                      {members.map((member) => (
-                        <div key={member.email} className="flex items-center justify-between p-2 rounded-lg bg-gray-900/30">
-                          <div>
-                            <p className={`text-sm ${themeClasses.cardTitle}`}>{member.email}</p>
-                            <p className={`text-xs ${themeClasses.subtitleColor}`}>{member.role}</p>
-                          </div>
-                          {currentRoom.created_by === user.email && member.email !== user.email && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeMember(member.email)}
-                              className="px-3 py-1 border-red-500/50 text-red-500 hover:bg-red-500/10"
-                            >
-                              <UserMinus className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      onClick={() => setShowManageMembers(false)}
-                      className={`w-full px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                    >
-                      Close
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showRoomSettings && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 sm:p-6 z-50"
-              >
-                <Card className={`w-full max-w-md backdrop-blur-md ${themeClasses.cardBg}`}>
-                  <CardHeader>
-                    <CardTitle className={`flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                      <Settings className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                      <span>Room Settings</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={roomSettings.isPrivate}
-                          onChange={(e) => setRoomSettings({ ...roomSettings, isPrivate: e.target.checked })}
-                          className="h-4 w-4"
-                        />
-                        <Label className={themeClasses.subtitleColor}>Private Room</Label>
-                      </div>
-                      {roomSettings.isPrivate && (
-                        <div className="space-y-2">
-                          <Label className={themeClasses.subtitleColor}>Room Password</Label>
-                          <Input
-                            type="password"
-                            value={roomPassword}
-                            onChange={(e) => setRoomPassword(e.target.value)}
-                            placeholder="Enter room password"
-                            className={`text-sm ${themeClasses.inputBg}`}
-                          />
-                        </div>
-                      )}
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={() => setShowRoomSettings(false)}
-                          className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={updateRoomSettings}
-                          className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                        >
-                          Save Settings
-                        </Button>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={deleteRoom}
-                      className={`w-full px-4 py-2 text-sm border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-red-500`}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Room
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showVersionHistory && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 sm:p-6 z-50"
-              >
-                <Card className={`w-full max-w-lg backdrop-blur-md ${themeClasses.cardBg}`}>
-                  <CardHeader>
-                    <CardTitle className={`flex items-center space-x-2 ${themeClasses.cardTitle}`}>
-                      <History className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                      <span>Version History</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {versionHistory.length === 0 ? (
-                      <p className={`text-sm ${themeClasses.subtitleColor}`}>No versions saved yet.</p>
-                    ) : (
-                      <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                        {versionHistory.map((version) => (
-                          <div key={version.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-900/30">
-                            <div>
-                              <p className={`text-sm ${themeClasses.cardTitle}`}>
-                                Saved by {version.saved_by}
-                              </p>
-                              <p className={`text-xs ${themeClasses.subtitleColor}`}>
-                                {new Date(version.timestamp).toLocaleString()}
-                              </p>
-                            </div>
-                            {currentRoom.created_by === user.email && (
-                              <Button
-                                onClick={() => restoreVersion(version)}
-                                className={`px-4 py-1 text-sm ${themeClasses.primaryButton} text-white`}
-                              >
-                                Restore
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={saveVersion}
-                        disabled={currentRoom.created_by !== user.email}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                      >
-                        Save Version
-                      </Button>
-                      <Button
-                        onClick={() => setShowVersionHistory(false)}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                      >
-                        Close
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    );
+    return <AuthPrompt theme={theme} themeClasses={themeClasses} navigate={navigate} />;
   }
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 sm:mb-12"
-        >
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className={`p-3 rounded-2xl ${theme === 'dark'
-                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30'
-                : theme === 'green'
-                  ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30'
-                  : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30'
-              }`}>
-              <Users className={`w-6 sm:w-8 h-6 sm:h-8 ${themeClasses.heroIconColor}`} />
+      <div className="max-w-7xl mx-auto">
+        {currentRoom ? (
+          <>
+            <Header
+              currentRoom={currentRoom}
+              user={user}
+              theme={theme}
+              themeClasses={themeClasses}
+              copied={copied}
+              showChat={showChat}
+              setShowChat={setShowChat}
+              showVersionHistory={showVersionHistory}
+              setShowVersionHistory={setShowVersionHistory}
+              showManageMembers={showManageMembers}
+              setShowManageMembers={setShowManageMembers}
+              showRoomSettings={showRoomSettings}
+              setShowRoomSettings={setShowRoomSettings}
+              copyRoomId={copyRoomId}
+              copyRoomUrl={copyRoomUrl}
+              leaveRoom={leaveRoom}
+              languages={languages}
+              getLanguageColor={getLanguageColor}
+            />
+            <div className="">
+              <div className={`lg:col-span-${showChat ? 2 : 3}`}>
+                <CodeEditor
+                  code={code}
+                  currentRoom={currentRoom}
+                  theme={theme}
+                  themeClasses={themeClasses}
+                  textareaRef={textareaRef}
+                  lineNumbersRef={lineNumbersRef}
+                  cursors={cursors}
+                  isExecuting={isExecuting}
+                  executionOutput={executionOutput}
+                  handleCodeChange={handleCodeChange}
+                  handleCursorChange={handleCursorChange}
+                  syncScroll={syncScroll}
+                  executeCode={executeCode}
+                  languages={languages}
+                  getLanguageColor={getLanguageColor}
+                  renderCursor={renderCursor}
+                />
+              </div>
+              <div className="lg:col-span-1 flex flex-col gap-4">
+                <Chat
+                  showChat={showChat}
+                  chatMessages={chatMessages}
+                  newMessage={newMessage}
+                  setNewMessage={setNewMessage}
+                  sendMessage={sendMessage}
+                  user={user}
+                  theme={theme}
+                  themeClasses={themeClasses}
+                />
+                <AudioChat
+                  roomId={currentRoom.room_id}
+                  userId={user.email}
+                  theme={theme}
+                  themeClasses={themeClasses}
+                />
+              </div>
             </div>
-            <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold ${themeClasses.titleGradient}`}>
-              CodeLab
-            </h1>
-            <Sparkles className={`w-5 sm:w-6 h-5 sm:h-6 ${theme === 'dark' ? 'text-blue-400' : theme === 'green' ? 'text-teal-500' : 'text-pink-500'
-              } animate-pulse`} />
-          </div>
-          <p className={`text-base sm:text-lg md:text-xl mb-4 ${themeClasses.subtitleColor}`}>
-            Real-time collaborative coding spaces for teams
-          </p>
-          <div className="flex justify-center gap-2">
-            <Code2 className={`w-4 sm:w-5 h-4 sm:h-5 ${themeClasses.heroIconColor}`} />
-            <span className={`text-xs sm:text-sm ${themeClasses.subtitleColor}`}>
-              Live • Collaborative • Instant • Shareable
-            </span>
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className={`backdrop-blur-md border-2 transition-all duration-300 hover:shadow-xl ${themeClasses.cardBg}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${themeClasses.cardTitle}`}>
-                  <Plus className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                  <span>Create New Room</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-  {showCreateForm ? (
-    <div className="space-y-4">
-      {/* Room Name */}
-      <div className="space-y-2">
-        <Label className={themeClasses.subtitleColor}>Room Name</Label>
-        <Input
-          value={newRoomName}
-          onChange={(e) => setNewRoomName(e.target.value)}
-          placeholder="My Awesome Project"
-          className={`text-sm ${themeClasses.inputBg}`}
-          required
-        />
-        {!newRoomName.trim() && (
-          <p className="text-xs text-gray-500">Required field</p>
-        )}
-      </div>
-
-      {/* Language */}
-      <div className="space-y-2">
-        <Label className={themeClasses.subtitleColor}>Language</Label>
-        <div className="relative flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => scrollLanguageSlider("left")}
-            className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <div
-            ref={languageSliderRef}
-            className={`flex overflow-x-auto space-x-2 p-2 border rounded-md ${themeClasses.languageSliderBg} scrollbar-hide`}
-            style={{
-              scrollSnapType: "x mandatory",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {languages.map((lang) => (
-              <div
-                key={lang.value}
-                onClick={() => setNewRoomLanguage(lang.value)}
-                className={`flex-shrink-0 px-4 py-2 rounded-md cursor-pointer text-sm transition-all duration-200 ${themeClasses.languageItemBg} ${
-                  newRoomLanguage === lang.value
-                    ? theme === "dark"
-                      ? "bg-purple-500/20 border-purple-500"
-                      : theme === "green"
-                      ? "bg-emerald-500/20 border-emerald-500"
-                      : "bg-orange-500/20 border-orange-500"
-                    : ""
-                }`}
-                style={{ scrollSnapAlign: "center", minWidth: "100px" }}
-              >
-                <span className={getLanguageColor(lang.value)}>
-                  {lang.label}
+            <ManageMembersModal
+              showManageMembers={showManageMembers}
+              setShowManageMembers={setShowManageMembers}
+              members={members}
+              newMemberEmail={newMemberEmail}
+              setNewMemberEmail={setNewMemberEmail}
+              addMember={addMember}
+              removeMember={removeMember}
+              currentRoom={currentRoom}
+              user={user}
+              theme={theme}
+              themeClasses={themeClasses}
+            />
+            <RoomSettingsModal
+              showRoomSettings={showRoomSettings}
+              setShowRoomSettings={setShowRoomSettings}
+              roomSettings={roomSettings}
+              setRoomSettings={setRoomSettings}
+              roomPassword={roomPassword}
+              setRoomPassword={setRoomPassword}
+              updateRoomSettings={updateRoomSettings}
+              deleteRoom={deleteRoom}
+              currentRoom={currentRoom}
+              user={user}
+              theme={theme}
+              themeClasses={themeClasses}
+            />
+            <VersionHistoryModal
+              showVersionHistory={showVersionHistory}
+              setShowVersionHistory={setShowVersionHistory}
+              versionHistory={versionHistory}
+              restoreVersion={restoreVersion}
+              saveVersion={saveVersion}
+              currentRoom={currentRoom}
+              user={user}
+              theme={theme}
+              themeClasses={themeClasses}
+            />
+          </>
+        ) : (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-8 sm:mb-12"
+            >
+              <div className="inline-flex items-center gap-3 mb-6">
+                <div className={`p-3 rounded-2xl ${theme === 'dark'
+                    ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30'
+                    : theme === 'green'
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30'
+                      : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30'
+                  }`}>
+                  <Users className={`w-6 sm:w-8 h-6 sm:h-8 ${themeClasses.heroIconColor}`} />
+                </div>
+                <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold ${themeClasses.titleGradient}`}>
+                  CodeLab
+                </h1>
+                <Sparkles className={`w-5 sm:w-6 h-5 sm:h-6 ${theme === 'dark' ? 'text-blue-400' : theme === 'green' ? 'text-teal-500' : 'text-pink-500'
+                  } animate-pulse`} />
+              </div>
+              <p className={`text-base sm:text-lg md:text-xl mb-4 ${themeClasses.subtitleColor}`}>
+                Real-time collaborative coding spaces for teams
+              </p>
+              <div className="flex justify-center gap-2">
+                <Code2 className={`w-4 sm:w-5 h-4 sm:h-5 ${themeClasses.heroIconColor}`} />
+                <span className={`text-xs sm:text-sm ${themeClasses.subtitleColor}`}>
+                  Live • Collaborative • Instant • Shareable
                 </span>
               </div>
-            ))}
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => scrollLanguageSlider("right")}
-            className={`flex-shrink-0 z-10 ${themeClasses.outlineButton}`}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Private Room Checkbox */}
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={roomSettings.isPrivate}
-          onChange={(e) =>
-            setRoomSettings({ ...roomSettings, isPrivate: e.target.checked })
-          }
-          className="h-4 w-4"
-        />
-        <Label className={themeClasses.subtitleColor}>Private Room</Label>
-      </div>
-
-      {/* Password if Private */}
-      {roomSettings.isPrivate && (
-        <div className="space-y-2">
-          <Label className={themeClasses.subtitleColor}>Room Password</Label>
-          <Input
-            type="password"
-            value={roomPassword}
-            onChange={(e) => setRoomPassword(e.target.value)}
-            placeholder="Enter room password"
-            className={`text-sm ${themeClasses.inputBg}`}
-            required
-          />
-          {!roomPassword.trim() && (
-            <p className="text-xs text-gray-500">Required field</p>
-          )}
-        </div>
-      )}
-
-      {/* Buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={() => setShowCreateForm(false)}
-          className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleCreateRoom}
-          disabled={isSubmitting}
-          className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-        >
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Creating...</span>
+            </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
+              <CreateRoomForm
+                showCreateForm={showCreateForm}
+                setShowCreateForm={setShowCreateForm}
+                newRoomName={newRoomName}
+                setNewRoomName={setNewRoomName}
+                newRoomLanguage={newRoomLanguage}
+                setNewRoomLanguage={setNewRoomLanguage}
+                roomSettings={roomSettings}
+                setRoomSettings={setRoomSettings}
+                roomPassword={roomPassword}
+                setRoomPassword={setRoomPassword}
+                isSubmitting={isSubmitting}
+                handleCreateRoom={handleCreateRoom}
+                theme={theme}
+                themeClasses={themeClasses}
+                languages={languages}
+                languageSliderRef={languageSliderRef}
+                scrollLanguageSlider={scrollLanguageSlider}
+                getLanguageColor={getLanguageColor}
+              />
+              <JoinRoomForm
+                showJoinForm={showJoinForm}
+                setShowJoinForm={setShowJoinForm}
+                joinRoomId={joinRoomId}
+                setJoinRoomId={setJoinRoomId}
+                roomPassword={roomPassword}
+                setRoomPassword={setRoomPassword}
+                handleJoinByRoomId={handleJoinByRoomId}
+                theme={theme}
+                themeClasses={themeClasses}
+              />
             </div>
-          ) : (
-            "Create Room"
-          )}
-        </Button>
+            <ActiveRooms
+              rooms={rooms}
+              isLoadingRooms={isLoadingRooms}
+              setShowCreateForm={setShowCreateForm}
+              handleJoinRoom={handleJoinRoom}
+              copyRoomUrl={copyRoomUrl}
+              copied={copied}
+              roomPassword={roomPassword}
+              setRoomPassword={setRoomPassword}
+              theme={theme}
+              themeClasses={themeClasses}
+              languages={languages}
+              getLanguageColor={getLanguageColor}
+            />
+          </>
+        )}
       </div>
-    </div>
-  ) : (
-    <div className="space-y-4">
-      <p className={`text-sm ${themeClasses.subtitleColor}`}>
-        Start a new collaborative coding session with your team
-      </p>
-      <Button
-        onClick={() => setShowCreateForm(true)}
-        className={`w-full px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Create New Room
-      </Button>
-    </div>
-  )}
-</CardContent>
-
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className={`backdrop-blur-md border-2 transition-all duration-300 hover:shadow-xl ${themeClasses.cardBg}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${themeClasses.cardTitle}`}>
-                  <ExternalLink className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                  <span>Join Existing Room</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                {showJoinForm ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Room ID</Label>
-                      <Input
-                        value={joinRoomId}
-                        onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-                        placeholder="Enter 6-character Room ID"
-                        maxLength={6}
-                        className={`font-mono text-center text-sm sm:text-base tracking-widest ${themeClasses.inputBg}`}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={themeClasses.subtitleColor}>Password (if private)</Label>
-                      <Input
-                        type="password"
-                        value={roomPassword}
-                        onChange={(e) => setRoomPassword(e.target.value)}
-                        placeholder="Enter room password"
-                        className={`text-sm ${themeClasses.inputBg}`}
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => setShowJoinForm(false)}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.outlineButton}`}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleJoinByRoomId}
-                        disabled={!joinRoomId.trim() || joinRoomId.length !== 6}
-                        className={`flex-1 px-4 py-2 text-sm ${themeClasses.secondaryButton} text-white shadow-lg`}
-                      >
-                        <ArrowRight className="w-4 h-4 mr-2" />
-                        Join Room
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className={`text-sm ${themeClasses.subtitleColor}`}>
-                      Enter a Room ID to join an existing collaboration session
-                    </p>
-                    <Button
-                      onClick={() => setShowJoinForm(true)}
-                      className={`w-full px-4 py-2 text-sm ${themeClasses.secondaryButton} text-white shadow-lg`}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Join Room by ID
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
-            <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${themeClasses.cardTitle}`}>
-                <Zap className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                <span>Active Rooms ({rooms.length})</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              {isLoadingRooms ? (
-                <div className="text-center py-12">
-                  <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${themeClasses.spinnerColor} mx-auto mb-4`}></div>
-                  <p className={`text-sm ${themeClasses.subtitleColor}`}>Loading rooms...</p>
-                </div>
-              ) : rooms.length === 0 ? (
-                <div className="text-center py-12">
-                  <Coffee className={`w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-4 ${themeClasses.subtitleColor}`} />
-                  <h3 className={`text-lg sm:text-xl font-semibold mb-2 ${themeClasses.cardTitle}`}>
-                    No Active Rooms
-                  </h3>
-                  <p className={`mb-6 text-sm ${themeClasses.subtitleColor}`}>
-                    Be the first to create a collaborative coding room!
-                  </p>
-                  <Button
-                    onClick={() => setShowCreateForm(true)}
-                    className={`px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create First Room
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {rooms.map((room) => (
-                    <motion.div
-                      key={room.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ scale: 1.02 }}
-                      className={`border-2 rounded-xl p-4 sm:p-6 transition-all duration-300 ${theme === 'dark'
-                          ? 'border-gray-700 hover:border-purple-500/50 bg-gray-900/30 hover:shadow-lg hover:shadow-purple-500/20'
-                          : theme === 'green'
-                            ? 'border-emerald-200 hover:border-emerald-400/50 bg-gradient-to-br from-white/50 to-emerald-50/30 hover:shadow-lg hover:shadow-emerald-500/20'
-                            : 'border-orange-200 hover:border-orange-400/50 bg-gradient-to-br from-white/50 to-orange-50/30 hover:shadow-lg hover:shadow-orange-500/20'
-                        }`}
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className={`font-semibold mb-2 text-sm sm:text-base ${themeClasses.cardTitle}`}>
-                            {room.room_name}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs border-2 ${getLanguageColor(room.language)}`}
-                            >
-                              {languages.find(l => l.value === room.language)?.label || room.language}
-                            </Badge>
-                            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-emerald-100 text-emerald-700'
-                              }`}>
-                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${theme === 'dark' ? 'bg-green-400' : 'bg-emerald-500'
-                                }`}></div>
-                              <span>Live</span>
-                            </div>
-                            {room.isPrivate && (
-                              <Badge variant="outline" className="text-xs border-2 text-yellow-400">
-                                Private
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <Code2 className={`w-5 h-5 ${themeClasses.cardIcon}`} />
-                      </div>
-                      <div className={`text-xs sm:text-sm mb-4 space-y-1 ${themeClasses.subtitleColor}`}>
-                        <p>
-                          Room ID: <span className={`font-mono font-bold ${theme === 'dark' ? 'text-purple-300' : theme === 'green' ? 'text-emerald-700' : 'text-orange-700'
-                            }`}>{room.room_id}</span>
-                        </p>
-                        <p>Created {new Date(room.created_date).toLocaleString()}</p>
-                        <p>By {room.created_by}</p>
-                      </div>
-                      {room.isPrivate && (
-                        <div className="mb-4">
-                          <Input
-                            type="password"
-                            value={roomPassword}
-                            onChange={(e) => setRoomPassword(e.target.value)}
-                            placeholder="Enter room password"
-                            className={`text-sm ${themeClasses.inputBg}`}
-                          />
-                        </div>
-                      )}
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleJoinRoom(room)}
-                          disabled={room.isPrivate && !roomPassword}
-                          className={`flex-1 px-4 py-2 text-sm ${themeClasses.primaryButton} text-white shadow-lg`}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Join Room
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyRoomUrl(room.room_id)}
-                          className={`px-3 py-1 ${themeClasses.outlineButton}`}
-                        >
-                          {copied[`url_${room.room_id}`] ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <Share className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
