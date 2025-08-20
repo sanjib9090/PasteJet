@@ -15,7 +15,7 @@ import CreateRoomForm from "./lab/CreateRoomForm";
 import JoinRoomForm from "./lab/JoinRoomForm";
 import ActiveRooms from "./lab/ActiveRooms";
 import AuthPrompt from "./lab/AuthPrompt";
-import AudioChat from "./lab/AudioChat"; // Import AudioChat component
+import AudioChat from "./lab/AudioChat";
 
 const languages = [
   { value: "javascript", label: "JavaScript", color: "text-yellow-300", version: "18.15.0" },
@@ -69,7 +69,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const [newRoomLanguage, setNewRoomLanguage] = useState("javascript");
   const [joinRoomId, setJoinRoomId] = useState("");
   const [roomPassword, setRoomPassword] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(""); // Initialize with empty string
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [members, setMembers] = useState([]);
@@ -579,7 +579,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   const renderCursor = (cursor, index) => {
-    if (!textareaRef.current || !cursor.position) return null;
+    if (!textareaRef.current || !cursor.position || !code) return null; // Guard against undefined or empty code
     const lines = code.split('\n');
     let charCount = 0;
     for (let i = 0; i < cursor.position.line - 1; i++) {
