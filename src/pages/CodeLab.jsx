@@ -15,7 +15,7 @@ import CreateRoomForm from "./lab/CreateRoomForm";
 import JoinRoomForm from "./lab/JoinRoomForm";
 import ActiveRooms from "./lab/ActiveRooms";
 import AuthPrompt from "./lab/AuthPrompt";
-import AudioChat from "./lab/AudioChat"; // Import AudioChat component
+import AudioChat from "./lab/AudioChat";
 
 const languages = [
   { value: "javascript", label: "JavaScript", color: "text-yellow-300", version: "18.15.0" },
@@ -69,7 +69,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const [newRoomLanguage, setNewRoomLanguage] = useState("javascript");
   const [joinRoomId, setJoinRoomId] = useState("");
   const [roomPassword, setRoomPassword] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(""); // Initialize with empty string
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [members, setMembers] = useState([]);
@@ -98,7 +98,7 @@ export default function CodeLab({ theme = 'dark', user }) {
     if (currentRoom) {
       unsubscribeRoom = onSnapshot(doc(db, "rooms", currentRoom.room_id), (doc) => {
         if (doc.exists()) {
-          setCode(doc.data().content || "");
+          setCode(doc.data().content ?? ""); // Use nullish coalescing to ensure string
         }
       });
 
@@ -268,7 +268,7 @@ export default function CodeLab({ theme = 'dark', user }) {
         joined_at: new Date().toISOString()
       });
       setCurrentRoom(room);
-      setCode(room.content || `// Welcome to ${room.room_name}!\n// Collaborative coding session\n\n`);
+      setCode(room.content ?? `// Welcome to ${room.room_name}!\n// Collaborative coding session\n\n`);
       setShowJoinForm(false);
       setJoinRoomId("");
       setRoomPassword("");
@@ -305,7 +305,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   const handleCodeChange = async (e) => {
-    const newCode = e.target.value;
+    const newCode = e.target.value ?? "";
     setCode(newCode);
     if (currentRoom) {
       try {
@@ -321,7 +321,7 @@ export default function CodeLab({ theme = 'dark', user }) {
     const { selectionStart } = e.target;
     const lines = code.substring(0, selectionStart).split('\n');
     const line = lines.length;
-    const column = lines[lines.length - 1].length + 1;
+    const column = lines[lines.length - 1]?.length + 1 || 1; // Fallback to 1 if lines is empty
 
     try {
       await setDoc(doc(db, "rooms", currentRoom.room_id, "cursors", user.email), {
@@ -337,7 +337,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const executeCode = async () => {
     if (!currentRoom || isExecuting) return;
     const language = languages.find(l => l.value === currentRoom.language);
-    if (!language.version) {
+    if (!language?.version) {
       setExecutionOutput("Execution not supported for this language.");
       return;
     }
@@ -385,7 +385,7 @@ export default function CodeLab({ theme = 'dark', user }) {
     if (!currentRoom || currentRoom.created_by !== user.email) return;
     try {
       await updateDoc(doc(db, "rooms", currentRoom.room_id), { content: version.content });
-      setCode(version.content);
+      setCode(version.content ?? "");
       setShowVersionHistory(false);
     } catch (error) {
       console.error("Error restoring version:", error);
@@ -579,11 +579,11 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   const renderCursor = (cursor, index) => {
-    if (!textareaRef.current || !cursor.position) return null;
+    if (!textareaRef.current || !cursor?.position || !code) return null; // Guard against undefined code or cursor
     const lines = code.split('\n');
     let charCount = 0;
     for (let i = 0; i < cursor.position.line - 1; i++) {
-      charCount += lines[i].length + 1;
+      charCount += (lines[i]?.length || 0) + 1; // Fallback to 0 if lines[i] is undefined
     }
     charCount += cursor.position.column - 1;
 
@@ -595,11 +595,19 @@ export default function CodeLab({ theme = 'dark', user }) {
     return (
       <div
         key={cursor.email}
-        className={`absolute pointer-events-none ${cursorColors[index % cursorColors.length]}`}
-        style={{ top: `${top}px`, left: `${left + 48}px` }}
+        className="absolute pointer-events-none"
+        style={{ top: `${top}px`, left: `${left + 48}px`, zIndex: 10 }}
       >
-        <div className="w-0.5 h-5 bg-current" />
-        <div className={`text-xs px-1.5 py-0.5 rounded ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+        <div
+          className={`w-0.5 h-5 animate-blink ${theme === 'dark' ? 'bg-white/80' : 'bg-black/80'}`}
+          style={{ width: '1.5px', height: '20px', borderRadius: '1px' }}
+        />
+        <div 
+          className={`text-[10px] px-1 py-0.5 rounded-md transform -translate-y-6 ${
+            theme === 'dark' ? 'bg-gray-800/80 text-white border border-gray-600' : 'bg-white/80 text-gray-900 border border-gray-300'
+          }`}
+          style={{ whiteSpace: 'nowrap', fontFamily: 'Arial, sans-serif' }}
+        >
           {cursor.displayName}
         </div>
       </div>

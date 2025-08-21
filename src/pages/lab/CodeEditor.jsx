@@ -21,9 +21,74 @@ export default function CodeEditor({
   executeCode,
   languages,
   getLanguageColor,
-  renderCursor
+  renderCursor,
 }) {
   const lineNumbers = code.split('\n').map((_, i) => i + 1).join('\n');
+
+  // Wrapper to add viewport hiding logic to renderCursor
+  const renderCursorWithViewportCheck = (cursor, index) => {
+    if (!textareaRef.current) {
+      console.warn("textareaRef is not available, skipping cursor render");
+      return null;
+    }
+
+    // Validate cursor data
+    if (!cursor.position || typeof cursor.position.line !== 'number' || typeof cursor.position.column !== 'number') {
+      console.warn(`Invalid cursor data for index ${index}:`, cursor);
+      return null; // Skip rendering invalid cursors
+    }
+
+    // Get textarea dimensions and scroll position
+    const textarea = textareaRef.current;
+    const { scrollTop, scrollLeft, clientHeight, clientWidth } = textarea;
+
+    // Convert line and column to pixel coordinates
+    const lineHeight = 20; // Matches lineHeight in style (20px)
+    const charWidth = 7.2; // Approximate character width for monospaced font
+    const paddingLeft = 12; // Matches textarea's padding-left (12px)
+    const cursorTop = cursor.position.line * lineHeight; // Pixel Y position
+    const cursorLeft = cursor.position.column * charWidth + paddingLeft; // Pixel X position
+
+    // Check if cursor is outside the viewport
+    const isOutsideViewport =
+      cursorTop < scrollTop ||
+      cursorTop >= scrollTop + clientHeight ||
+      cursorLeft < scrollLeft ||
+      cursorLeft >= scrollLeft + clientWidth;
+
+    // Debug cursor position and viewport
+    console.log(`Cursor ${index}:`, {
+      line: cursor.position.line,
+      column: cursor.position.column,
+      top: cursorTop,
+      left: cursorLeft,
+      isOutside: isOutsideViewport,
+      scrollTop,
+      scrollLeft,
+      clientHeight,
+      clientWidth,
+      cursorData: cursor,
+    });
+
+    // Call the original renderCursor prop
+    const cursorElement = renderCursor(cursor, index);
+    if (!cursorElement) return null;
+
+    // Wrap the cursor element to apply viewport hiding
+    return (
+      <div
+        key={index}
+        style={{
+          display: isOutsideViewport ? 'none' : 'block',
+          position: 'absolute',
+          zIndex: 10, // Ensure cursor is above other elements
+        }}
+        title={cursor.displayName || 'Unknown user'}
+      >
+        {cursorElement}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -34,7 +99,7 @@ export default function CodeEditor({
       >
         <Card className={`backdrop-blur-md border-2 ${themeClasses.cardBg}`}>
           <CardHeader>
-            <CardTitle className={`flex  sm:flex-row items-start sm:items-center justify-between gap-2 ${themeClasses.cardTitle}`}>
+            <CardTitle className={`flex sm:flex-row items-start sm:items-center justify-between gap-2 ${themeClasses.cardTitle}`}>
               <div className="flex items-center space-x-2">
                 <Code2 className={`w-5 h-5 ${themeClasses.cardIcon}`} />
                 <span>Collaborative Code Editor</span>
@@ -90,7 +155,7 @@ export default function CodeEditor({
                 placeholder="Start coding together..."
                 style={{ lineHeight: '20px', paddingLeft: '12px' }}
               />
-              {Object.values(cursors).map((cursor, index) => renderCursor(cursor, index))}
+              {Object.values(cursors).map((cursor, index) => renderCursorWithViewportCheck(cursor, index))}
               <div className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${theme === 'dark' ? 'bg-gray-800/80 text-gray-400' : 'bg-white/80 text-gray-600'
                 }`}>
                 💡 Changes sync automatically
