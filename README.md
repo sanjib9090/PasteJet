@@ -34,11 +34,11 @@ Deployed at: [https://pastejet.vercel.app](https://pastejet.vercel.app)
 ## File Structure
 
 ```
-pastejetfrontend/
+PasteJet/
 ├── public/
 │   ├── favicon.png
 │   ├── apple-touch-icon.png
-│   └── pastejet-og-image.png
+│   
 ├── src/
 │   ├── components/
 │   │   ├── Layout.jsx        # App layout with theme persistence and navigation
@@ -88,8 +88,8 @@ pastejetfrontend/
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/pastejetfrontend.git
-   cd pastejetfrontend
+   git clone https://github.com/sanjib9090/PasteJet.git
+   cd PasteJet
    ```
 
 2. **Install Dependencies**:
@@ -244,4 +244,4 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## Contact
 
-For issues or feature requests, open a GitHub issue or contact the PasteJet team at [your-email@example.com](mailto:your-email@example.com).
+For issues or feature requests, open a GitHub issue or contact the PasteJet team at [sanjibbarad06@gmail.com](mailto:sanjibbarad06@gmail.com).
