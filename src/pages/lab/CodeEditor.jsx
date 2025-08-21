@@ -135,7 +135,7 @@ export default function CodeEditor({
             <div className="relative flex">
               <div
                 ref={lineNumbersRef}
-                className={`w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                className={`pt-1 w-12 min-h-[500px] bg-gray-800/50 text-right pr-3 py-3 font-mono text-sm leading-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}
                 style={{ lineHeight: '20px', overflowY: 'hidden' }}
               >
@@ -151,7 +151,7 @@ export default function CodeEditor({
                 }}
                 onScroll={syncScroll}
                 onSelect={handleCursorChange}
-                className={`min-h-[500px] border-0 rounded-none font-mono text-sm leading-5 resize-none transition-all duration-200 flex-1 ${themeClasses.textareaBg} ${getLanguageColor(currentRoom.language)}`}
+                className={`pt-1 min-h-[500px] border-0 rounded-none font-mono text-sm leading-5 resize-none transition-all duration-200 flex-1 ${themeClasses.textareaBg} ${getLanguageColor(currentRoom.language)}`}
                 placeholder="Start coding together..."
                 style={{ lineHeight: '20px', paddingLeft: '12px' }}
               />

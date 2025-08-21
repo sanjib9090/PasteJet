@@ -1,27 +1,35 @@
 # PasteJet
 
-PasteJet is a real-time collaborative coding and paste-sharing platform built with React, Vite, Firebase, and Tailwind CSS. Users can create, share, and collaborate on code snippets or text pastes, with features like syntax highlighting, real-time collaboration, and customizable themes. The application supports public, unlisted, and password-protected pastes, with optional expiration dates and custom URLs for logged-in users.
+PasteJet is a real-time collaborative coding and paste-sharing platform built with React, Vite, Firebase, and Tailwind CSS. Users can create, share, and collaborate on code snippets or text pastes, with features like syntax highlighting, real-time collaboration, customizable themes, and clipboard syncing across devices. The application supports public, unlisted, and password-protected pastes, with optional expiration dates and custom URLs for logged-in users. It also includes a user dashboard for managing pastes and a collaborative coding lab (CodeLab) for real-time editing with chat and audio features.
 
 Deployed at: [https://pastejet.vercel.app](https://pastejet.vercel.app)
 
 ## Features
 
-- **Paste Creation**: Create code or text pastes with support for multiple languages (e.g., JavaScript, Python, Java, C++).
-- **Real-Time Collaboration**: Collaborate in real-time coding rooms at `/codelab` with shareable room IDs (e.g., `/codelab?room=ABC123`).
+- **Paste Creation**: Create code or text pastes with support for multiple languages (e.g., JavaScript, Python, Java, C++, HTML, CSS, JSON, etc.) via the Home page.
+- **Paste Viewing**: View pastes with syntax highlighting, copy/download options, view counts, and support for password-protected or expired pastes (`PasteView.jsx`).
+- **User Dashboard**: Manage your pastes, filter/search them, update profile details, and delete pastes (`Dashboard.jsx`).
+- **Clipboard Syncing**: Sync clipboard content across devices (mobile/desktop) with unique IDs for retrieval and viewing (`Clipboard.jsx`).
+- **Real-Time Collaboration**: Collaborate in real-time coding rooms at `/codelab` with shareable room IDs (e.g., `/codelab?room=ABC123`), featuring:
+  - Real-time code editing (`CodeLab.jsx`).
+  - Text and audio chat (`Chat.jsx`, `AudioChat.jsx`).
+  - Version history for code snapshots (`VersionHistoryModal.jsx`).
+  - Room creation and joining (`CreateRoomForm.jsx`, `JoinRoomForm.jsx`).
+  - Member and settings management for room creators (`ManageMembersModal.jsx`, `RoomSettingsModal.jsx`).
 - **Customizable Themes**: Choose between `dark`, `orange`, and `green` themes, persisted in `localStorage` for a consistent user experience.
-- **Authentication**: Firebase Authentication for user login, enabling custom URLs, unlisted pastes, and expiration dates.
-- **Syntax Highlighting**: Supports various programming languages with a clean, modern UI.
-- **Responsive Design**: Mobile-friendly layout with a bottom navigation bar for smaller screens.
-- **Scroll-to-Top**: Automatically scrolls to the top after creating a paste, ensuring the success message is visible.
-- **Error Handling**: Prevents issues like `ReferenceError: print is not defined` by validating code execution languages.
+- **Authentication**: Firebase Authentication for user login, enabling custom URLs, unlisted pastes, expiration dates, and advanced features like dashboard and clipboard (`AuthPrompt.jsx`).
+- **Syntax Highlighting**: Powered by `react-syntax-highlighter` for various programming languages with a clean, modern UI (`CodeBlock.jsx`).
+- **Responsive Design**: Mobile-friendly layout with animations via Framer Motion.
+- **Error Handling**: Robust handling for expired pastes, password prompts, WebRTC permissions, and execution errors (e.g., validating code execution languages).
+- **Security**: Sensitive data (e.g., passwords, content) filtered from console logs in `PasteView.jsx` and secure Firebase rules for data access.
 
 ## Technologies Used
 
-- **Frontend**: React, Vite, React Router, Tailwind CSS, Lucide React, Framer Motion
-- **Backend**: Node.js (hosted at `https://pastejetbackend.onrender.com`) with Piston API for code execution
+- **Frontend**: React, Vite, React Router, Tailwind CSS, Lucide React, Framer Motion, React Syntax Highlighter
+- **Backend**: Node.js (hosted at `https://pastejetbackend.onrender.com`) with Piston API for code execution in CodeLab
 - **Database & Auth**: Firebase Firestore and Authentication
 - **Deployment**: Vercel for frontend, Render for backend
-- **Others**: Axios for API calls, `localStorage` for theme persistence
+- **Others**: Axios for API calls, UUID for unique IDs, `localStorage` for theme persistence, Firebase Hooks for real-time data, WebRTC for audio chat
 
 ## File Structure
 
@@ -35,21 +43,37 @@ pastejetfrontend/
 │   ├── components/
 │   │   ├── Layout.jsx        # App layout with theme persistence and navigation
 │   │   ├── Login.jsx         # User login component
+│   │   ├── CodeBlock.jsx     # Syntax highlighting component
 │   │   └── ui/              # Shadcn UI components (Button, Input, Card, etc.)
 │   ├── pages/
-│   │   ├── Home.jsx         # Paste creation with scroll-to-top
-│   │   ├── CodeLab.jsx      # Real-time collaborative coding
-│   │   ├── PasteView.jsx    # View individual pastes
-│   │   ├── Dashboard.jsx    # User paste dashboard
-│   │   └── Clipboard.jsx    # Clipboard syncing
+│   │   ├── Home.jsx         # Paste creation page
+│   │   ├── PasteView.jsx    # Paste viewing page
+│   │   ├── Dashboard.jsx    # User dashboard for pastes and profile
+│   │   ├── Clipboard.jsx    # Clipboard syncing page
+│   │   └── lab/         # Collaborative coding components
+│   │       ├── CodeLab.jsx  # Main CodeLab page
+│   │       ├── Chat.jsx     # Chat interface
+│   │       ├── ActiveRooms.jsx # List of active rooms
+│   │       ├── Header.jsx   # Room header with actions
+│   │       ├── VersionHistoryModal.jsx # Version history modal
+│   │       ├── AuthPrompt.jsx # Login prompt for unauthenticated users
+│   │       ├── JoinRoomForm.jsx # Form to join rooms
+│   │       ├── RoomSettingsModal.jsx # Room settings modal
+│   │       ├── AudioChat.jsx # Audio chat feature
+│   │       ├── CreateRoomForm.jsx # Form to create rooms
+│   │       ├── ManageMembersModal.jsx # Manage room members modal
 │   ├── App.jsx              # Main app with themed loading screen
 │   ├── firebase.js          # Firebase configuration
 │   ├── index.css            # Tailwind CSS setup
+│   ├── CodeLab.module.css   # Custom CSS for CodeLab (e.g., scrollbar hiding)
 │   └── main.jsx             # Entry point
 ├── .env                     # Environment variables (Firebase config)
 ├── vercel.json              # Vercel routing configuration
+├── postcss.config.js        # PostCSS config for Tailwind
+├── tailwind.config.js       # Tailwind CSS configuration
 ├── package.json             # Dependencies and scripts
-└── README.md                # Project documentation
+├── package-lock.json        # Locked dependencies
+└── README.markdown           # Project documentation
 ```
 
 ## Prerequisites
@@ -90,7 +114,7 @@ pastejetfrontend/
    npm run dev
    ```
    - Open `http://localhost:5173` to view the app.
-   - Test paste creation, theme switching, and `/codelab` collaboration.
+   - Test paste creation, viewing, dashboard, clipboard syncing, and `/codelab` collaboration with room IDs (e.g., `/codelab?room=ABC123`).
 
 5. **Build for Production**:
    ```bash
@@ -118,22 +142,10 @@ pastejetfrontend/
    - Ensure `vercel.json` includes:
      ```json
      {
-       "version": 2,
-       "rewrites": [
-         { "source": "/(.*)", "destination": "/index.html" }
-       ],
-       "cleanUrls": true,
-       "trailingSlash": false,
-       "builds": [
-         {
-           "src": "package.json",
-           "use": "@vercel/static-build",
-           "config": { "distDir": "dist" }
-         }
-       ]
+       "rewrites": [{ "source": "/(.*)", "destination": "/" }]
      }
      ```
-   - This fixes `404 Not Found` errors on routes like `/codelab`.
+   - This handles client-side routing for paths like `/codelab`, `/view/:id`, `/dashboard`, and `/clipboard`.
 
 ### Backend
 - The backend is hosted at `https://pastejetbackend.onrender.com`.
@@ -152,87 +164,71 @@ pastejetfrontend/
 
 - **Firestore Rules**:
   ```javascript
-  rules_version = '2'; 
+  rules_version = '2';
   service cloud.firestore {
-  match /databases/{database}/documents {
-    match /pastes/{pasteId} {
-      // Allow anyone to read pastes
-      allow read: if true;
-      // Allow anonymous and authenticated users to create public pastes
-      allow create: if request.resource.data.visibility == "public" && request.resource.data.created_by == "anonymous";
-      // Allow authenticated users to create any paste
-      allow create: if request.auth != null;
-      // Allow update/delete only by the paste's creator (authenticated users only)
-      allow update, delete: if request.auth != null && resource.data.created_by == request.auth.uid;
-    }
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
+    match /databases/{database}/documents {
+      match /pastes/{pasteId} {
+        allow read: if true;
+        allow create: if request.resource.data.visibility == "public" && request.resource.data.created_by == "anonymous";
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && resource.data.created_by == request.auth.uid;
+      }
+      match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
       match /clipboards/{clipboardId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if request.auth != null && resource.data.created_by == request.auth.uid;
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if request.auth != null && resource.data.created_by == request.auth.uid;
+      }
+      match /rooms/{roomId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.resource.data.created_by == request.auth.token.email;
+        allow update: if request.auth != null;
+        match /messages/{messageId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null;
+        }
+        match /members/{memberId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && memberId == request.auth.token.email;
+          allow delete: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.created_by == request.auth.token.email;
+        }
+        match /presence/{userId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && request.auth.token.email == userId;
+          allow delete: if request.auth != null && request.auth.token.email == userId;
+        }
+        match /cursors/{userId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && request.auth.token.email == userId;
+          allow delete: if request.auth != null && request.auth.token.email == userId;
+        }
+        match /execution_results/{executionId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null;
+        }
+        match /version_history/{versionId} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.created_by == request.auth.token.email;
+        }
+      }
     }
-    
-    
-    
-  match /rooms/{roomId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.resource.data.created_by == request.auth.token.email;
-      allow update: if request.auth != null;
-
-      match /messages/{messageId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null;
-      }
-
-      match /members/{memberId} {
-        allow read: if request.auth != null;
-        // Allow users to add themselves to the members subcollection
-        allow write: if request.auth != null && memberId == request.auth.token.email;
-        // Allow the room creator to remove members
-        allow delete: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.created_by == request.auth.token.email;
-      }
-
-      match /presence/{userId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && request.auth.token.email == userId;
-        allow delete: if request.auth != null && request.auth.token.email == userId;
-      }
-
-      match /cursors/{userId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && request.auth.token.email == userId;
-        allow delete: if request.auth != null && request.auth.token.email == userId;
-      }
-
-      match /execution_results/{executionId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null;
-      }
-
-      match /version_history/{versionId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && get(/databases/$(database)/documents/rooms/$(roomId)).data.created_by == request.auth.token.email;
-      }
-    }    
-  }
   }
   ```
-- **for clipboard**: Enable indexing clipboards	
-created_by
-created_date
-__name__
-Collection in Firebase console.
-
-- **Authentication**: Enable Email/Password provider in Firebase console.
+- **Indexes**: Enable indexing for clipboards (created_by, created_date, __name__) and pastes (custom_url) in Firebase console.
+- **Authentication**: Enable Email/Password and optionally Google/GitHub providers in Firebase console.
 
 ## Key Fixes
 
-- **404 Not Found on `/codelab`**: Fixed by `vercel.json` rewrites to route all paths to `index.html` for client-side routing.
-- **ReferenceError: print is not defined**: Handled in `CodeLab.jsx` by validating language-specific code execution (e.g., `print` for Python, `console.log` for JavaScript).
+- **404 Not Found on Routes**: Fixed by `vercel.json` rewrites to route all paths to `index.html` for client-side routing.
+- **Blank Screen on Load**: Addressed by optimizing `App.jsx` to handle Firebase Authentication's asynchronous behavior and ensuring themed loading spinners.
+- **WebRTC Errors in CodeLab**: Fixed by updating Firebase rules for WebRTC signaling and serializing `RTCIceCandidate` objects in `AudioChat.jsx`.
+- **ReferenceError: print is not defined**: Handled by validating language-specific code execution (e.g., `print` for Python, `console.log` for JavaScript) in CodeLab.
 - **Theme Persistence**: Themes (`dark`, `orange`, `green`) are saved in `localStorage` in `Layout.jsx` and applied to the loading screen in `App.jsx`.
-- **Scroll-to-Top**: `Home.jsx` scrolls to the top after paste creation for better UX.
+- **Security**: Sensitive data (passwords, content) filtered from console logs in `PasteView.jsx`.
+- **Scroll-to-Top**: Implemented in `Home.jsx` after paste creation for better UX.
+- **Error Boundaries**: Added in `Clipboard.jsx` for robust error handling.
 
 ## Contributing
 
