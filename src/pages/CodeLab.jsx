@@ -1,9 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase";
-import { Users, Plus, Code2, Copy, Check, ExternalLink, Coffee, Zap, Share, ArrowRight, Sparkles, Settings, MessageSquare, UserPlus, UserMinus, Trash2, Play, History, ChevronLeft, ChevronRight, Mic, MicOff } from "lucide-react";
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "firebase/firestore";
+import {
+  Users,
+  Plus,
+  Code2,
+  Copy,
+  Check,
+  ExternalLink,
+  Coffee,
+  Zap,
+  Share,
+  ArrowRight,
+  Sparkles,
+  Settings,
+  MessageSquare,
+  UserPlus,
+  UserMinus,
+  Trash2,
+  Play,
+  History,
+  ChevronLeft,
+  ChevronRight,
+  Mic,
+  MicOff,
+} from "lucide-react";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import axios from "axios";
 import Header from "./lab/Header";
 import CodeEditor from "./lab/CodeEditor";
@@ -43,7 +77,7 @@ const languages = [
   { value: "r", label: "R", color: "text-blue-200", version: "4.1.3" },
   { value: "clojure", label: "Clojure", color: "text-green-500", version: "1.10.3" },
   { value: "fortran", label: "Fortran", color: "text-gray-400", version: "11.1.0" },
-  { value: "lisp", label: "Lisp", color: "text-yellow-400", version: "2.1.2" }
+  { value: "lisp", label: "Lisp", color: "text-yellow-400", version: "2.1.2" },
 ];
 
 const cursorColors = [
@@ -53,10 +87,10 @@ const cursorColors = [
   "bg-yellow-500",
   "bg-purple-500",
   "bg-pink-500",
-  "bg-orange-500"
+  "bg-orange-500",
 ];
 
-export default function CodeLab({ theme = 'dark', user }) {
+export default function CodeLab({ theme = "dark", user }) {
   const [rooms, setRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -69,7 +103,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   const [newRoomLanguage, setNewRoomLanguage] = useState("javascript");
   const [joinRoomId, setJoinRoomId] = useState("");
   const [roomPassword, setRoomPassword] = useState("");
-  const [code, setCode] = useState(""); // Initialize with empty string
+  const [code, setCode] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [members, setMembers] = useState([]);
@@ -86,29 +120,71 @@ export default function CodeLab({ theme = 'dark', user }) {
   const lineNumbersRef = useRef(null);
   const languageSliderRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    console.log("User status:", user ? "Authenticated" : "Not authenticated");
     if (user) {
       loadRooms();
     }
   }, [user]);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const roomIdFromUrl = searchParams.get("room");
+    console.log("URL room ID:", roomIdFromUrl, "Current room:", currentRoom);
+
+    if (roomIdFromUrl && user && !currentRoom) {
+      console.log("Attempting to join room from URL:", roomIdFromUrl);
+      const joinRoomAutomatically = async () => {
+        try {
+          const roomDoc = await getDoc(doc(db, "rooms", roomIdFromUrl.toUpperCase()));
+          console.log("Room exists:", roomDoc.exists());
+          if (roomDoc.exists()) {
+            const roomData = { id: roomDoc.id, ...roomDoc.data() };
+            console.log("Room data:", roomData);
+            if (roomData.isPrivate) {
+              console.log("Room is private, showing join form");
+              setJoinRoomId(roomIdFromUrl);
+              setShowJoinForm(true);
+            } else {
+              console.log("Joining public room");
+              await handleJoinRoom(roomData);
+              navigate("/codelab", { replace: true });
+            }
+          } else {
+            console.error("Room not found for ID:", roomIdFromUrl);
+            alert("Room not found. Please check the Room ID.");
+          }
+        } catch (error) {
+          console.error("Error joining room from URL:", error);
+          alert("Failed to join room. Please try again.");
+        }
+      };
+
+      joinRoomAutomatically();
+    } else {
+      console.log("No room ID or user not authenticated or already in a room");
+    }
+  }, [location.search, user, currentRoom, navigate]);
+
+  useEffect(() => {
     let unsubscribeRoom, unsubscribeChat, unsubscribeMembers, unsubscribePresence, unsubscribeCursors, unsubscribeVersions;
     if (currentRoom) {
+      console.log("Setting up listeners for room:", currentRoom.room_id);
       unsubscribeRoom = onSnapshot(doc(db, "rooms", currentRoom.room_id), (doc) => {
         if (doc.exists()) {
-          setCode(doc.data().content ?? ""); // Use nullish coalescing to ensure string
+          setCode(doc.data().content ?? "");
         }
       });
 
       unsubscribeChat = onSnapshot(collection(db, "rooms", currentRoom.room_id, "messages"), (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const messages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setChatMessages(messages.sort((a, b) => a.timestamp - b.timestamp));
       });
 
       unsubscribeMembers = onSnapshot(collection(db, "rooms", currentRoom.room_id, "members"), (snapshot) => {
-        const membersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const membersList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setMembers(membersList);
       });
 
@@ -121,7 +197,7 @@ export default function CodeLab({ theme = 'dark', user }) {
 
       unsubscribeCursors = onSnapshot(collection(db, "rooms", currentRoom.room_id, "cursors"), (snapshot) => {
         const cursorData = {};
-        snapshot.docs.forEach(doc => {
+        snapshot.docs.forEach((doc) => {
           if (doc.id !== user.email) {
             cursorData[doc.id] = { ...doc.data(), email: doc.id };
           }
@@ -130,7 +206,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       });
 
       unsubscribeVersions = onSnapshot(collection(db, "rooms", currentRoom.room_id, "version_history"), (snapshot) => {
-        const versions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const versions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setVersionHistory(versions.sort((a, b) => b.timestamp - a.timestamp));
       });
 
@@ -159,7 +235,7 @@ export default function CodeLab({ theme = 'dark', user }) {
         return await operation();
       } catch (error) {
         if (attempt === maxAttempts) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       }
     }
   };
@@ -221,14 +297,14 @@ export default function CodeLab({ theme = 'dark', user }) {
         created_date: new Date().toISOString(),
         created_by: user.email,
         isPrivate: roomSettings.isPrivate,
-        password: roomSettings.isPrivate ? roomPassword : null
+        password: roomSettings.isPrivate ? roomPassword : null,
       };
 
       await setDoc(doc(db, "rooms", roomId), roomData);
       await setDoc(doc(db, "rooms", roomId, "members", user.email), {
         email: user.email,
         role: "admin",
-        joined_at: new Date().toISOString()
+        joined_at: new Date().toISOString(),
       });
 
       setCurrentRoom(roomData);
@@ -236,7 +312,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       setShowCreateForm(false);
       setNewRoomName("");
       setRoomPassword("");
-      setRooms(prev => [roomData, ...prev]);
+      setRooms((prev) => [roomData, ...prev]);
     } catch (error) {
       console.error("Error creating room:", error);
       alert("Failed to create room. Please try again.");
@@ -247,15 +323,18 @@ export default function CodeLab({ theme = 'dark', user }) {
 
   const handleJoinRoom = async (room) => {
     if (!room || !room.room_id) {
+      console.error("Invalid room data:", room);
       alert("Invalid room data. Please try again.");
       return;
     }
 
     if (room.isPrivate && !roomPassword) {
+      console.log("Private room, password required");
       alert("Please enter the room password.");
       return;
     }
     if (room.isPrivate && room.password !== roomPassword) {
+      console.log("Incorrect password for room:", room.room_id);
       alert("Incorrect password.");
       setRoomPassword("");
       return;
@@ -265,13 +344,14 @@ export default function CodeLab({ theme = 'dark', user }) {
       await setDoc(doc(db, "rooms", room.room_id, "members", user.email), {
         email: user.email,
         role: "member",
-        joined_at: new Date().toISOString()
+        joined_at: new Date().toISOString(),
       });
       setCurrentRoom(room);
       setCode(room.content ?? `// Welcome to ${room.room_name}!\n// Collaborative coding session\n\n`);
       setShowJoinForm(false);
       setJoinRoomId("");
       setRoomPassword("");
+      console.log("Successfully joined room:", room.room_id);
     } catch (error) {
       console.error("Error joining room:", error);
       alert("Failed to join room. Please try again.");
@@ -281,21 +361,25 @@ export default function CodeLab({ theme = 'dark', user }) {
   const handleJoinByRoomId = async (e) => {
     e.preventDefault();
     if (!joinRoomId.trim() || joinRoomId.length !== 6) {
+      console.log("Invalid room ID:", joinRoomId);
       alert("Please enter a valid 6-character Room ID.");
       return;
     }
 
     try {
       const roomDoc = await getDoc(doc(db, "rooms", joinRoomId.toUpperCase()));
+      console.log("Checking room ID:", joinRoomId, "Exists:", roomDoc.exists());
       if (roomDoc.exists()) {
         const roomData = { id: roomDoc.id, ...roomDoc.data() };
         if (roomData.isPrivate && roomData.password !== roomPassword) {
+          console.log("Incorrect password for room:", joinRoomId);
           alert("Incorrect password.");
           setRoomPassword("");
           return;
         }
         await handleJoinRoom(roomData);
       } else {
+        console.error("Room not found for ID:", joinRoomId);
         alert("Room not found. Please check the Room ID.");
       }
     } catch (error) {
@@ -319,15 +403,15 @@ export default function CodeLab({ theme = 'dark', user }) {
   const handleCursorChange = async (e) => {
     if (!currentRoom || !textareaRef.current) return;
     const { selectionStart } = e.target;
-    const lines = code.substring(0, selectionStart).split('\n');
+    const lines = code.substring(0, selectionStart).split("\n");
     const line = lines.length;
-    const column = lines[lines.length - 1]?.length + 1 || 1; // Fallback to 1 if lines is empty
+    const column = lines[lines.length - 1]?.length + 1 || 1;
 
     try {
       await setDoc(doc(db, "rooms", currentRoom.room_id, "cursors", user.email), {
         position: { line, column },
         displayName: user.displayName || user.email,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       });
     } catch (error) {
       console.error("Error updating cursor:", error);
@@ -336,7 +420,7 @@ export default function CodeLab({ theme = 'dark', user }) {
 
   const executeCode = async () => {
     if (!currentRoom || isExecuting) return;
-    const language = languages.find(l => l.value === currentRoom.language);
+    const language = languages.find((l) => l.value === currentRoom.language);
     if (!language?.version) {
       setExecutionOutput("Execution not supported for this language.");
       return;
@@ -344,21 +428,25 @@ export default function CodeLab({ theme = 'dark', user }) {
 
     setIsExecuting(true);
     try {
-      const response = await axios.post("https://pastejetbackend.onrender.com/execute", {
-        language: currentRoom.language,
-        version: language.version,
-        code,
-        input: ""
-      }, {
-        headers: { "Content-Type": "application/json" },
-        timeout: 15000
-      });
+      const response = await axios.post(
+        "https://pastejetbackend.onrender.com/execute",
+        {
+          language: currentRoom.language,
+          version: language.version,
+          code,
+          input: "",
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          timeout: 15000,
+        }
+      );
 
       setExecutionOutput(response.data.stdout || response.data.stderr || "No output");
       await setDoc(doc(collection(db, "rooms", currentRoom.room_id, "execution_results")), {
         output: response.data.stdout || response.data.stderr || "No output",
         executed_by: user.email,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (error) {
       console.error("Error executing code:", error);
@@ -374,7 +462,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       await setDoc(doc(collection(db, "rooms", currentRoom.room_id, "version_history")), {
         content: code,
         saved_by: user.email,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (error) {
       console.error("Error saving version:", error);
@@ -401,7 +489,7 @@ export default function CodeLab({ theme = 'dark', user }) {
         content: newMessage,
         sender: user.email,
         displayName: user.displayName || user.email,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
       setNewMessage("");
     } catch (error) {
@@ -416,7 +504,7 @@ export default function CodeLab({ theme = 'dark', user }) {
       await setDoc(doc(db, "rooms", currentRoom.room_id, "members", newMemberEmail), {
         email: newMemberEmail,
         role: "member",
-        joined_at: new Date().toISOString()
+        joined_at: new Date().toISOString(),
       });
       setNewMemberEmail("");
     } catch (error) {
@@ -442,9 +530,13 @@ export default function CodeLab({ theme = 'dark', user }) {
     try {
       await updateDoc(doc(db, "rooms", currentRoom.room_id), {
         isPrivate: roomSettings.isPrivate,
-        password: roomSettings.isPrivate ? roomPassword : null
+        password: roomSettings.isPrivate ? roomPassword : null,
       });
-      setCurrentRoom(prev => ({ ...prev, ...roomSettings, password: roomSettings.isPrivate ? roomPassword : null }));
+      setCurrentRoom((prev) => ({
+        ...prev,
+        ...roomSettings,
+        password: roomSettings.isPrivate ? roomPassword : null,
+      }));
       setShowRoomSettings(false);
       setRoomPassword("");
     } catch (error) {
@@ -496,69 +588,69 @@ export default function CodeLab({ theme = 'dark', user }) {
 
   const getLanguageColor = (lang) => {
     const colors = {
-      javascript: theme === 'dark' ? 'text-yellow-300' : 'text-yellow-600',
-      python: theme === 'dark' ? 'text-blue-300' : 'text-blue-600',
-      java: theme === 'dark' ? 'text-orange-300' : 'text-orange-600',
-      cpp: theme === 'dark' ? 'text-purple-300' : 'text-purple-600',
-      html: theme === 'dark' ? 'text-red-300' : 'text-red-600',
-      css: theme === 'dark' ? 'text-green-300' : 'text-green-600',
-      typescript: theme === 'dark' ? 'text-blue-400' : 'text-blue-700'
+      javascript: theme === "dark" ? "text-yellow-300" : "text-yellow-600",
+      python: theme === "dark" ? "text-blue-300" : "text-blue-600",
+      java: theme === "dark" ? "text-orange-300" : "text-orange-600",
+      cpp: theme === "dark" ? "text-purple-300" : "text-purple-600",
+      html: theme === "dark" ? "text-red-300" : "text-red-600",
+      css: theme === "dark" ? "text-green-300" : "text-green-600",
+      typescript: theme === "dark" ? "text-blue-400" : "text-blue-700",
     };
-    return colors[lang] || (theme === 'dark' ? 'text-gray-300' : 'text-gray-600');
+    return colors[lang] || (theme === "dark" ? "text-gray-300" : "text-gray-600");
   };
 
   const getThemeClasses = () => {
     switch (theme) {
-      case 'green':
+      case "green":
         return {
-          heroIconColor: 'text-emerald-600',
-          titleGradient: 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent',
-          subtitleColor: 'text-gray-600',
-          cardBg: 'bg-white/80 border-emerald-200/50',
-          cardTitle: 'text-gray-900',
-          cardIcon: 'text-emerald-600',
-          inputBg: 'bg-white/70 border-emerald-200 text-gray-900 placeholder-gray-500 focus:border-emerald-400',
-          languageSliderBg: 'bg-white/70 border-emerald-200',
-          languageItemBg: 'text-gray-900 hover:bg-emerald-50',
-          primaryButton: 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600',
-          secondaryButton: 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600',
-          outlineButton: 'border-emerald-200 text-emerald-700 hover:bg-emerald-50',
-          textareaBg: 'bg-gray-50 text-gray-900 border-emerald-200 focus:ring-emerald-400/20',
-          spinnerColor: 'border-emerald-500'
+          heroIconColor: "text-emerald-600",
+          titleGradient: "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent",
+          subtitleColor: "text-gray-600",
+          cardBg: "bg-white/80 border-emerald-200/50",
+          cardTitle: "text-gray-900",
+          cardIcon: "text-emerald-600",
+          inputBg: "bg-white/70 border-emerald-200 text-gray-900 placeholder-gray-500 focus:border-emerald-400",
+          languageSliderBg: "bg-white/70 border-emerald-200",
+          languageItemBg: "text-gray-900 hover:bg-emerald-50",
+          primaryButton: "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+          secondaryButton: "bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600",
+          outlineButton: "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
+          textareaBg: "bg-gray-50 text-gray-900 border-emerald-200 focus:ring-emerald-400/20",
+          spinnerColor: "border-emerald-500",
         };
-      case 'orange':
+      case "orange":
         return {
-          heroIconColor: 'text-orange-600',
-          titleGradient: 'bg-gradient-to-r from-orange-600 via-pink-600 to-orange-600 bg-clip-text text-transparent',
-          subtitleColor: 'text-gray-600',
-          cardBg: 'bg-white/80 border-orange-200/50',
-          cardTitle: 'text-gray-900',
-          cardIcon: 'text-orange-600',
-          inputBg: 'bg-white/70 border-orange-200 text-gray-900 placeholder-gray-500 focus:border-orange-400',
-          languageSliderBg: 'bg-white/70 border-orange-200',
-          languageItemBg: 'text-gray-900 hover:bg-orange-50',
-          primaryButton: 'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600',
-          secondaryButton: 'bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600',
-          outlineButton: 'border-orange-200 text-orange-700 hover:bg-orange-50',
-          textareaBg: 'bg-gray-50 text-gray-900 border-orange-200 focus:ring-orange-400/20',
-          spinnerColor: 'border-orange-500'
+          heroIconColor: "text-orange-600",
+          titleGradient: "bg-gradient-to-r from-orange-600 via-pink-600 to-orange-600 bg-clip-text text-transparent",
+          subtitleColor: "text-gray-600",
+          cardBg: "bg-white/80 border-orange-200/50",
+          cardTitle: "text-gray-900",
+          cardIcon: "text-orange-600",
+          inputBg: "bg-white/70 border-orange-200 text-gray-900 placeholder-gray-500 focus:border-orange-400",
+          languageSliderBg: "bg-white/70 border-orange-200",
+          languageItemBg: "text-gray-900 hover:bg-orange-50",
+          primaryButton: "bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600",
+          secondaryButton: "bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600",
+          outlineButton: "border-orange-200 text-orange-700 hover:bg-orange-50",
+          textareaBg: "bg-gray-50 text-gray-900 border-orange-200 focus:ring-orange-400/20",
+          spinnerColor: "border-orange-500",
         };
       default:
         return {
-          heroIconColor: 'text-purple-400',
-          titleGradient: 'bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent',
-          subtitleColor: 'text-gray-400',
-          cardBg: 'bg-gray-800/50 border-gray-700/50',
-          cardTitle: 'text-white',
-          cardIcon: 'text-purple-400',
-          inputBg: 'bg-gray-900/50 border-gray-600 text-white placeholder-gray-400 focus:border-purple-400',
-          languageSliderBg: 'bg-gray-900/50 border-gray-600',
-          languageItemBg: 'text-white hover:bg-gray-700',
-          primaryButton: 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600',
-          secondaryButton: 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600',
-          outlineButton: 'border-gray-600 text-gray-300 hover:bg-gray-700',
-          textareaBg: 'bg-gray-900 text-white border-gray-600 focus:ring-purple-400/20',
-          spinnerColor: 'border-purple-500'
+          heroIconColor: "text-purple-400",
+          titleGradient: "bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent",
+          subtitleColor: "text-gray-400",
+          cardBg: "bg-gray-800/50 border-gray-700/50",
+          cardTitle: "text-white",
+          cardIcon: "text-purple-400",
+          inputBg: "bg-gray-900/50 border-gray-600 text-white placeholder-gray-400 focus:border-purple-400",
+          languageSliderBg: "bg-gray-900/50 border-gray-600",
+          languageItemBg: "text-white hover:bg-gray-700",
+          primaryButton: "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600",
+          secondaryButton: "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600",
+          outlineButton: "border-gray-600 text-gray-300 hover:bg-gray-700",
+          textareaBg: "bg-gray-900 text-white border-gray-600 focus:ring-purple-400/20",
+          spinnerColor: "border-purple-500",
         };
     }
   };
@@ -573,17 +665,17 @@ export default function CodeLab({ theme = 'dark', user }) {
 
   const scrollLanguageSlider = (direction) => {
     if (languageSliderRef.current) {
-      const scrollAmount = direction === 'left' ? -100 : 100;
-      languageSliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      const scrollAmount = direction === "left" ? -100 : 100;
+      languageSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
   const renderCursor = (cursor, index) => {
-    if (!textareaRef.current || !cursor?.position || !code) return null; // Guard against undefined code or cursor
-    const lines = code.split('\n');
+    if (!textareaRef.current || !cursor?.position || !code) return null;
+    const lines = code.split("\n");
     let charCount = 0;
     for (let i = 0; i < cursor.position.line - 1; i++) {
-      charCount += (lines[i]?.length || 0) + 1; // Fallback to 0 if lines[i] is undefined
+      charCount += (lines[i]?.length || 0) + 1;
     }
     charCount += cursor.position.column - 1;
 
@@ -599,14 +691,14 @@ export default function CodeLab({ theme = 'dark', user }) {
         style={{ top: `${top}px`, left: `${left + 48}px`, zIndex: 10 }}
       >
         <div
-          className={`w-0.5 h-5 animate-blink ${theme === 'dark' ? 'bg-white/80' : 'bg-black/80'}`}
-          style={{ width: '1.5px', height: '20px', borderRadius: '1px' }}
+          className={`w-0.5 h-5 animate-blink ${theme === "dark" ? "bg-white/80" : "bg-black/80"}`}
+          style={{ width: "1.5px", height: "20px", borderRadius: "1px" }}
         />
-        <div 
+        <div
           className={`text-[10px] px-1 py-0.5 rounded-md transform -translate-y-6 ${
-            theme === 'dark' ? 'bg-gray-800/80 text-white border border-gray-600' : 'bg-white/80 text-gray-900 border border-gray-300'
+            theme === "dark" ? "bg-gray-800/80 text-white border border-gray-600" : "bg-white/80 text-gray-900 border border-gray-300"
           }`}
-          style={{ whiteSpace: 'nowrap', fontFamily: 'Arial, sans-serif' }}
+          style={{ whiteSpace: "nowrap", fontFamily: "Arial, sans-serif" }}
         >
           {cursor.displayName}
         </div>
@@ -615,6 +707,7 @@ export default function CodeLab({ theme = 'dark', user }) {
   };
 
   if (!user) {
+    console.log("Rendering AuthPrompt due to no user");
     return <AuthPrompt theme={theme} themeClasses={themeClasses} navigate={navigate} />;
   }
 
@@ -730,19 +823,25 @@ export default function CodeLab({ theme = 'dark', user }) {
               className="text-center mb-8 sm:mb-12"
             >
               <div className="inline-flex items-center gap-3 mb-6">
-                <div className={`p-3 rounded-2xl ${theme === 'dark'
-                    ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30'
-                    : theme === 'green'
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30'
-                      : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30'
-                  }`}>
+                <div
+                  className={`p-3 rounded-2xl ${
+                    theme === "dark"
+                      ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30"
+                      : theme === "green"
+                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30"
+                      : "bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30"
+                  }`}
+                >
                   <Users className={`w-6 sm:w-8 h-6 sm:h-8 ${themeClasses.heroIconColor}`} />
                 </div>
                 <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold ${themeClasses.titleGradient}`}>
                   CodeLab
                 </h1>
-                <Sparkles className={`w-5 sm:w-6 h-5 sm:h-6 ${theme === 'dark' ? 'text-blue-400' : theme === 'green' ? 'text-teal-500' : 'text-pink-500'
-                  } animate-pulse`} />
+                <Sparkles
+                  className={`w-5 sm:w-6 h-5 sm:h-6 ${
+                    theme === "dark" ? "text-blue-400" : theme === "green" ? "text-teal-500" : "text-pink-500"
+                  } animate-pulse`}
+                />
               </div>
               <p className={`text-base sm:text-lg md:text-xl mb-4 ${themeClasses.subtitleColor}`}>
                 Real-time collaborative coding spaces for teams
